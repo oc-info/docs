@@ -6,7 +6,7 @@
 - [Доступные правила валидации](#available-validation-rules)
 - [Условные правила](#conditionally-adding-rules)
 - [Собственные сообщения об ошибках](#custom-error-messages)
-- [Собвственные правила проверки](#custom-validation-rules)
+- [Собственные правила проверки](#custom-validation-rules)
 
 <a name="basic-usage"></a>
 ## Использование валидации
@@ -67,7 +67,7 @@
 <a name="working-with-error-messages"></a>
 ## Работа с сообщениями об ошибках
 
-После вызова метода `messages` объекта `Validator` Вы получите экземпляр `Illuminate\Support\MessageBag`, который имеет набор полезных методов для доступа к сообщеням об ошибках.
+После вызова метода `messages` объекта `Validator` Вы получите экземпляр `Illuminate\Support\MessageBag`, который имеет набор полезных методов для доступа к сообщениям об ошибках.
 
 #### Получение первого сообщения для поля
 
@@ -106,7 +106,7 @@
 <a name="error-messages-and-views"></a>
 ## Сообщения об ошибках и представления
 
-Как только вы провели проверку, вам понадобится простой способ, чтобы передать ошибки в шаблон. Октбярь позволяет удобно сделать это. Например, у нас есть такие роуты:
+Как только вы провели проверку, вам понадобится простой способ, чтобы передать ошибки в шаблон. Октябрь позволяет удобно сделать это. Например, у нас есть такие роуты:
 
     public function onRegister()
     {
@@ -275,212 +275,212 @@ alpha_num
 <a name="rule-digits-between"></a>
 #### digits_between:_min_,_max_
 
-The field under validation must have a length between the given _min_ and _max_.
+Поле должно иметь длину в диапазоне от min до max.
 
 <a name="rule-email"></a>
 #### email
 
-The field under validation must be formatted as an e-mail address.
+Поле должно быть корректным адресом e-mail.
 
 <a name="rule-exists"></a>
 #### exists:_table_,_column_
 
-The field under validation must exist on a given database table.
+Поле должно существовать в заданной таблице базе данных.
 
-#### Basic usage of exists rule
+#### Простое использование:
 
     'state' => 'exists:states'
 
-#### Specifying a custom column name
+#### Указание имени поля в таблице:
 
     'state' => 'exists:states,abbreviation'
 
-You may also specify more conditions that will be added as "where" clauses to the query:
+Вы также можете указать больше условий, которые будут добавлены к запросу "WHERE":
 
     'email' => 'exists:staff,email,account_id,1'
 
-Passing `NULL` as a "where" clause value will add a check for a `NULL` database value:
+Вы можете передать `NULL` в "where", тогда будет осуществлена проверка значения в бд на `NULL`:
 
     'email' => 'exists:staff,email,deleted_at,NULL'
 
 <a name="rule-image"></a>
 #### image
 
-The file under validation must be an image (jpeg, png, bmp, or gif)
+Загруженный файл должен быть изображением в формате jpeg, png, bmp или gif.
 
 <a name="rule-in"></a>
 #### in:_foo_,_bar_,...
 
-The field under validation must be included in the given list of values.
+Значение поля должно быть одним из перечисленных (foo, bar и т.д.).
 
 <a name="rule-integer"></a>
 #### integer
 
-The field under validation must have an integer value.
+Поле должно иметь корректное целочисленное значение.
 
 <a name="rule-ip"></a>
 #### ip
 
-The field under validation must be formatted as an IP address.
+Поле должно быть корректным IP-адресом.
 
 <a name="rule-max"></a>
 #### max:_value_
 
-The field under validation must be less than or equal to a maximum _value_. Strings, numerics, and files are evaluated in the same fashion as the [`size`](#rule-size) rule.
+Значение поля должно быть меньше или равно _value_. Строки, числа и файлы трактуются аналогично правилу [`size`](#rule-size).
 
 <a name="rule-mimes"></a>
 #### mimes:_foo_,_bar_,...
 
-The file under validation must have a MIME type corresponding to one of the listed extensions.
+MIME-тип загруженного файла должен быть одним из перечисленных.
 
-#### Basic usage of MIME rule
+#### Простое использование:
 
     'photo' => 'mimes:jpeg,bmp,png'
 
 <a name="rule-min"></a>
 #### min:_value_
 
-The field under validation must have a minimum _value_. Strings, numerics, and files are evaluated in the same fashion as the [`size`](#rule-size) rule.
+Значение поля должно быть более _value_. Строки, числа и файлы трактуются аналогично правилу [`size`](#rule-size).
 
 <a name="rule-not-in"></a>
 #### not_in:_foo_,_bar_,...
 
-The field under validation must not be included in the given list of values.
+Значение поля не должно быть одним из перечисленных (foo, bar и т.д.).
 
 <a name="rule-numeric"></a>
 #### numeric
 
-The field under validation must have a numeric value.
+Поле должно иметь корректное числовое или дробное значение.
 
 <a name="rule-regex"></a>
 #### regex:_pattern_
 
-The field under validation must match the given regular expression.
+Поле должно соответствовать заданному регулярному выражению.
 
-**Note:** When using the `regex` pattern, it may be necessary to specify rules in an array instead of using pipe delimiters, especially if the regular expression contains a pipe character.
+**Примечание:** при использовании этого правила Вам возможно потребуется перечислять другие правила в виде элементов массива, особенно если выражение содержит символ вертикальной черты (|).
 
 <a name="rule-required"></a>
 #### required
 
-The field under validation must be present in the input data.
+Проверяемое поле должно иметь непустое значение.
 
 <a name="rule-required-if"></a>
 #### required_if:_field_,_value_,...
 
-The field under validation must be present if the _field_ field is equal to any _value_.
+Проверяемое поле должно иметь непустое значение, если другое поле _field_ имеет любое из значений _value_.
 
 <a name="rule-required-with"></a>
 #### required_with:_foo_,_bar_,...
 
-The field under validation must be present _only if_ any of the other specified fields are present.
+Проверяемое поле должно иметь непустое значение, но только если присутствует хотя бы одно из перечисленных полей (foo, bar и т.д.).
 
 <a name="rule-required-with-all"></a>
 #### required_with_all:_foo_,_bar_,...
 
-The field under validation must be present _only if_ all of the other specified fields are present.
+Проверяемое поле должно иметь непустое значение, но только если присутствуют все перечисленные поля (foo, bar и т.д.).
 
 <a name="rule-required-without"></a>
 #### required_without:_foo_,_bar_,...
 
-The field under validation must be present _only when_ any of the other specified fields are not present.
+Проверяемое поле должно иметь непустое значение, но только если не присутствует хотя бы одно из перечисленных полей (foo, bar и т.д.).
 
 <a name="rule-required-without-all"></a>
 #### required_without_all:_foo_,_bar_,...
 
-The field under validation must be present _only when_ the all of the other specified fields are not present.
+Проверяемое поле должно иметь непустое значение, но только если не присутствуют все перечисленные поля (foo, bar и т.д.).
 
 <a name="rule-same"></a>
 #### same:_field_
 
-The specified _field_ value must match the field's value under validation.
+Поле должно иметь то же значение, что и поле _field_.
 
 <a name="rule-size"></a>
 #### size:_value_
 
-The field under validation must have a size matching the given _value_. For string data, _value_ corresponds to the number of characters. For numeric data, _value_ corresponds to a given integer value. For files, _size_ corresponds to the file size in kilobytes.
+Поле должно иметь совпадающий с _value_ размер. Для строк это обозначает длину, для чисел - число, для файлов - размер в килобайтах.
 
 <a name="rule-string"></a>
 #### string:_value_
 
-The field under validation must be a string type.
+Поле должно иметь тип строки.
 
 <a name="rule-timezone"></a>
 #### timezone
 
-The field under validation must be a valid timezone identifier according to the `timezone_identifiers_list` PHP function.
+Поле должно содержать идентификатор часового пояса (таймзоны), один из перечисленных в PHP функции `timezone_identifiers_list`.
 
 <a name="rule-unique"></a>
 #### unique:_table_,_column_,_except_,_idColumn_
 
-The field under validation must be unique on a given database table. If the `column` option is not specified, the field name will be used.
+Значение поля должно быть уникальным в заданной таблице базы данных. Если `column` не указано, то будет использовано имя поля.
 
-#### Basic usage of unique rule
+#### Простое использование
 
     'email' => 'unique:users'
 
-#### Specifying a custom column name
+#### Указание имени поля в таблице
 
     'email' => 'unique:users,email_address'
 
-#### Forcing a unique rule to ignore a given ID
+#### Игнорирование определённого ID
 
     'email' => 'unique:users,email_address,10'
 
-#### Adding additional where clauses
+#### Добавление дополнительных условий
 
-You may also specify more conditions that will be added as "where" clauses to the query:
+Вы также можете указать больше условий, которые будут добавлены к запросу "WHERE"":
 
     'email' => 'unique:users,email_address,NULL,id,account_id,1'
 
-In the rule above, only rows with an `account_id` of `1` would be included in the unique check.
+В правиле выше только строки с `account_id` равном `1` будут включены в проверку.
 
 <a name="rule-url"></a>
 #### url
 
-The field under validation must be formatted as an URL.
+Поле должно быть корректным URL.
 
-> **Note:** This function uses PHP's `filter_var` method.
+> **Примечание:** Эта функция использует PHP метод `filter_var`.
 
 <a name="conditionally-adding-rules"></a>
-## Conditionally adding rules
+## Условные правила
 
-In some situations, you may wish to run validation checks against a field **only** if that field is present in the input array. To quickly accomplish this, add the `sometimes` rule to your rule list:
+Иногда вам нужно валидировать некое поле **только** тогда, когда оно присутствует во входных данных. Для этого добавьте правило `sometimes`:
 
     $v = Validator::make($data, [
         'email' => 'sometimes|required|email',
     ]);
 
-In the example above, the `email` field will only be validated if it is present in the `$data` array.
+В примере выше поле для поля `email` будет запущена валидация только когда `$data['email']` существует.
 
-#### Complex conditional validation
+#### Сложные условные правила
 
-Sometimes you may wish to require a given field only if another field has a greater value than 100. Or you may need two fields to have a given value only when another field is present. Adding these validation rules doesn't have to be a pain. First, create a `Validator` instance with your _static rules_ that never change:
+Иногда вам может нужно, чтобы поле имело какое-либо значение только если другое поле имеет значение, скажем, больше 100. Или вы можете требовать наличия двух полей только, когда также указано третье. Это легко достигается условными правилами. Сперва создайте объект `Validator` с набором _статичных правил_, которые никогда не изменяются:
 
     $v = Validator::make($data, [
         'email' => 'required|email',
         'games' => 'required|numeric',
     ]);
 
-Let's assume our web application is for game collectors. If a game collector registers with our application and they own more than 100 games, we want them to explain why they own so many games. For example, perhaps they run a game re-sell shop, or maybe they just enjoy collecting. To conditionally add this requirement, we can use the `sometimes` method on the `Validator` instance.
+Теперь предположим, что ваше приложения написано для коллекционеров игр. Если регистрируется коллекционер с более, чем 100 играми, то мы хотим их спросить, зачем им такое количество. Например, у них может быть магазин или может им просто нравится их собирать. Итак, для добавления такого условного правила мы используем метод `sometimes`.
 
     $v->sometimes('reason', 'required|max:500', function($input) {
         return $input->games >= 100;
     });
 
-The first argument passed to the `sometimes` method is the name of the field we are conditionally validating. The second argument is the rules we want to add. If the `Closure` passed as the third argument returns `true`, the rules will be added. This method makes it a breeze to build complex conditional validations. You may even add conditional validations for several fields at once:
+Первый параметр этого метода - имя поля, которое мы проверяем. Второй параметр - правило, которое мы хотим добавить, если переданная `Closure`  (третий параметр) вернёт `true`. Этот метод позволяет легко создавать сложные правила проверки ввода. Вы можете даже добавлять одни и те же условные правила для нескольких полей одновременно:
 
     $v->sometimes(['reason', 'cost'], 'required', function($input) {
         return $input->games >= 100;
     });
 
-> **Note:** The `$input` parameter passed to your `Closure` will be an instance of `Illuminate\Support\Fluent` and may be used as an object to access your input and files.
+> **Примечание:** Параметр `$input`, передаваемый `Closure` - объект `Illuminate\Support\Fluent` и может использоваться для чтения проверяемого ввода и файлов.
 
 <a name="custom-error-messages"></a>
-## Custom error messages
+## Собственные сообщения об ошибках
 
-If needed, you may use custom error messages for validation instead of the defaults. There are several ways to specify custom messages.
+Вы можете передать собственные сообщения об ошибках вместо используемых по умолчанию. Если несколько способов это сделать.
 
-#### Passing custom messages into validator
+#### Передача своих сообщений в Validator
 
     $messages = [
         'required' => 'The :attribute field is required.',
@@ -488,9 +488,9 @@ If needed, you may use custom error messages for validation instead of the defau
 
     $validator = Validator::make($input, $rules, $messages);
 
-> *Note:* The `:attribute` place-holder will be replaced by the actual name of the field under validation. You may also utilize other place-holders in validation messages.
+> *Примечание:* строка `:attribute` будет заменена на имя проверяемого поля. Вы также можете использовать и другие строки-переменные.
 
-#### Other validation placeholders
+#### Использование других переменных-строк
 
     $messages = [
         'same'    => 'The :attribute and :other must match.',
@@ -499,50 +499,50 @@ If needed, you may use custom error messages for validation instead of the defau
         'in'      => 'The :attribute must be one of the following types: :values',
     ];
 
-#### Specifying a custom message for a given attribute
+#### Указание собственного сообщения для отдельного поля
 
-Sometimes you may wish to specify a custom error messages only for a specific field:
+Иногда вам может потребоваться указать своё сообщение для отдельного поля:
 
     $messages = [
         'email.required' => 'We need to know your e-mail address!',
     ];
 
 <a name="localization"></a>
-#### Specifying custom messages in language files
+#### Указание собственных сообщений в файле локализации
 
-In some cases, you may wish to specify your custom messages in a language file instead of passing them directly to the `Validator`. To do so, add your messages to an array in the `lang/xx/validation.php` language file for your plugin.
+Также можно определять сообщения валидации в файле локализации вместо того, чтобы передавать их в `Validator` напрямую. Для этого добавьте сообщения в массив в файл локализации `lang/xx/validation.php` вашего плагина.
 
     return  [
         'required' => 'We need to know your e-mail address!',
         'email.required' => 'We need to know your e-mail address!',
     ];
 
-Then in your call to `Validator::make` use the `Lang:get` to use your custom files.
+Далее в `Validator::make` используйте метод `Lang:get`.
 
     Validator::make($formValues, $validations, Lang::get('acme.blog::validation'));
 
 <a name="custom-validation-rules"></a>
-## Custom validation rules
+## Собственные правила проверки
 
-#### Registering a custom validation rule
+#### Регистрация собственного правила валидации
 
-There are a variety of helpful validation rules; however, you may wish to specify some of your own. One method of registering custom validation rules is using the `Validator::extend` method:
+Октябрь изначально содержит множество полезных правил, однако Вам может понадобиться создать собственные. Одним из способов зарегистрировать произвольное правило - через метод `Validator::extend`.
 
     Validator::extend('foo', function($attribute, $value, $parameters) {
         return $value == 'foo';
     });
 
-The custom validator Closure receives three arguments: the name of the `$attribute` being validated, the `$value` of the attribute, and an array of `$parameters` passed to the rule.
+Переданная `Closure` получает три параметра: имя проверяемого поля `$attribute`, значение поля `$value` и массив параметров `$parameters` переданных правилу.
 
-You may also pass a class and method to the `extend` method instead of a Closure:
+Вместо функции в метод `extend` можно передать ссылку на метод класса:
 
     Validator::extend('foo', 'FooValidator@validate');
 
-Note that you will also need to define an error message for your custom rules. You can do so either using an inline custom message array or by adding an entry in the validation language file.
+Обратите внимание, что Вам также понадобится определить сообщение об ошибке для нового правила. Вы можете сделать это либо передавая его в виде массива строк в `Validator`, либо вписав в файл локализации.
 
-#### Extending the validator class
+#### Расширение класса Validator
 
-Instead of using Closure callbacks to extend the Validator, you may also extend the Validator class itself. To do so, write a Validator class that extends `Illuminate\Validation\Validator`. You may add validation methods to the class by prefixing them with `validate`:
+Вместо использования `Closure` для расширения набора доступных правил Вы можете расширить сам класс Validator. Для этого создайте класс, который наследует `Illuminate\Validation\Validator`. Вы можете добавить новые методы проверок, начав их имя с `validate`:
 
     <?php
 
@@ -556,22 +556,22 @@ Instead of using Closure callbacks to extend the Validator, you may also extend 
 
     }
 
-#### Registering a custom validator resolver
+#### Регистрация нового класса Validator
 
-Next, you need to register your custom Validator extension:
+Затем Вам нужно зарегистрировать это расширение валидации:
 
     Validator::resolver(function($translator, $data, $rules, $messages, $customAttributes) {
         return new CustomValidator($translator, $data, $rules, $messages, $customAttributes);
     });
 
-When creating a custom validation rule, you may sometimes need to define custom placeholder replacements for error messages. You may do so by creating a custom Validator as described above, and adding a `replaceXXX` function to the validator.
+Иногда при создании своего класса валидации Вам может понадобиться определить собственные строки-переменные (типа ":foo") для замены в сообщениях об ошибках. Это делается путём создания класса, как было описано выше, и добавлением функций с именами вида `replaceXXX`.
 
     protected function replaceFoo($message, $attribute, $rule, $parameters)
     {
         return str_replace(':foo', $parameters[0], $message);
     }
 
-If you would like to add a custom message "replacer" without extending the `Validator` class, you may use the `Validator::replacer` method:
+Если вы хотите добавить свое сообщение без использования `Validator::extend`, Вы можете использовать метод `Validator::replacer`:
 
     Validator::replacer('rule', function($message, $attribute, $rule, $parameters) {
         //
