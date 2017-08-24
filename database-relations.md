@@ -21,12 +21,12 @@
 <a name="introduction" class="anchor"></a>
 ## Введение
 
-Таблицы в базе данных часто связаны между собой. Например, статья в блоге может именть множество комментариев и быть связана с ее автором. Октябрь упрощает работу и управление такими отношениями.
+Таблицы в базе данных часто связаны между собой. Например, статья в блоге может иметь множество комментариев и быть связана с ее автором. Октябрь упрощает работу и управление такими отношениями.
 
 <a name="defining-relationships" class="anchor"></a>
 ## Определение отношений
 
-Отоншения задаются в файле с классом модели. Пример:
+Отношения задаются в файле с классом модели. Пример:
 
     class User extends Model
     {
@@ -138,7 +138,7 @@
         'phone' => ['Acme\Blog\Models\Phone', 'key' => 'my_user_id']
     ];
 
-Если же в модели, для которой Вы строите отношение (в данном случае `User`) ключ находится не в столбце id, то Вы можете указать его в качесте третьего аргумента:
+Если же в модели, для которой Вы строите отношение (в данном случае `User`) ключ находится не в столбце id, то Вы можете указать его в качестве третьего аргумента:
 
     public $hasOne = [
         'phone' => ['Acme\Blog\Models\Phone', 'key' => 'my_user_id', 'otherKey' => 'my_id']
@@ -360,7 +360,7 @@
 
 Первый аргумент, переданный в отношение `$hasManyThrough` - это имя конечной модели, к которой мы хотим получить доступ, а параметр `through` - это имя промежуточной модели.
 
-При выполнении запросов используются стандартные соглашения с внешними ключами, где `key` - это название внешнего ключа промежуточной модели, а параметр` throughKey` - название внешнего ключа в конечной модели.
+При выполнении запросов используются стандартные соглашения с внешними ключами, где `key` - это название внешнего ключа промежуточной модели, а параметр `throughKey` - название внешнего ключа в конечной модели.
 
     public $hasManyThrough = [
         'posts' => [
@@ -508,7 +508,7 @@
 
 Поскольку все типы отношений Модели могут быть вызваны через функции, то Вы можете вызывать эти функции для получения экземпляра отношения без фактического выполнения запросов. Кроме того, все типы отношений также используют [конструктор запросов](./database-query), позволяя Вам накладывать ограничения, фильтровать и сортировать отношения прежде чем выполнить SQL запрос.
 
-Например, у нас есть блог, в котором модель `User`связана с моделью `Post`:
+Например, у нас есть блог, в котором модель `User` связана с моделью `Post`:
 
     class User extends Model
     {
@@ -583,7 +583,7 @@
 
 Цикл выполнит один запрос для получения всех книг в таблице, а затем будет выполнять по одному запросу на каждую книгу для получения автора. Таким образом, если у нас 25 книг, то потребуется 26 запросов.
 
-Теперь давайте заранее получим всех авторов при помощи методв `with`:
+Теперь давайте заранее получим всех авторов при помощи методов `with`:
 
     $books = Book::with('author')->get();
 
@@ -679,7 +679,7 @@
 
 #### Метод Create
 
-В дополение к методам `save` и `saveMany`, Вы можете также использовать метод `create`, который принимает массив атрибутов, создает модель и добавляет запись в БД. В отличие от метода `save`, метод `create` не использует экземпляр модели, а принимает обычный PHP `array`:
+В дополнение к методам `save` и `saveMany`, Вы можете также использовать метод `create`, который принимает массив атрибутов, создает модель и добавляет запись в БД. В отличие от метода `save`, метод `create` не использует экземпляр модели, а принимает обычный PHP `array`:
 
     $post = Post::find(1);
 
@@ -778,21 +778,21 @@
 <a name="deferred-binding" class="anchor"></a>
 ## Отложенное связывание
 
-Deferred bindings allows you to postpone model relationships binding until the master record commits the changes. This is particularly useful if you need to prepare some models (such as file uploads) and associate them to another model that doesn't exist yet.
+Отложенное связывание позволяет отложить привязку отношений до тех пор, пока основная запись не зафиксирует изменения. Это особенно полезно, если Вам нужно подготовить некоторые модели (например, загрузку файлов) и связать их с другой моделью, которая еще не существует.
 
-You can defer any number of **slave** models against a **master** model using a **session key**. When the master record is saved along with the session key, the relationships to slave records are updated automatically for you. Deferred bindings are supported in the back-end [Form behavior](../backend/form) automatically, but you may want to use this feature in other places.
+Вы можете отложить любое количество связываний при помощи **session key**. Когда основная запись сохраняется вместе с ключом сеанса, отношения обновляются автоматически. Отложенное связывание  поддерживается автоматически в административной части сайта в [формах](./backend-form), но Вы можете использовать эту функцию и в других местах.
 
 <a name="deferred-session-key" class="anchor"></a>
-### Generating a session key
+### Генерация **session key**
 
-The session key is required for deferred bindings. You can think of a session key as of a transaction identifier. The same session key should be used for binding/unbinding relationships and saving the master model. You can generate the session key with PHP `uniqid()` function. Note that the [form helper](../cms/markup#forms) generates a hidden field containing the session key automatically.
+Используйте PHP функцию `uniqid()`для генерации **session key**:
 
     $sessionKey = uniqid('session_key', true);
 
 <a name="defer-binding" class="anchor"></a>
-### Defer a relation binding
+### Отложить связывания отношений
 
-The comment in the next example will not be added to the post unless the post is saved.
+Комментарий в следующем примере не будет добавлен к статье, пока статья не будет сохранена.
 
     $comment = new Comment;
     $comment->content = "Hello world!";
@@ -801,56 +801,54 @@ The comment in the next example will not be added to the post unless the post is
     $post = new Post;
     $post->comments()->add($comment, $sessionKey);
 
-> **Note**: the `$post` object has not been saved but the relationship will be created if the saving happens.
-
 <a name="defer-unbinding" class="anchor"></a>
-### Defer a relation unbinding
+### Отложить разрыв связей
 
-The comment in the next example will not be deleted unless the post is saved.
+Комментарий в следующем примере не будет удален, если сообщение не будет сохранено.
 
     $comment = Comment::find(1);
     $post = Post::find(1);
     $post->comments()->delete($comment, $sessionKey);
 
 <a name="list-all-bindings" class="anchor"></a>
-### List all bindings
+### Список всех связей
 
-Use the `withDeferred()` method of a relation to load all records, including deferred. The results will include existing relations as well.
+Используйте метод `withDeferred()`, чтобы получить все записи, включая отложенные. Результаты также будут включать существующие отношения.
 
     $post->comments()->withDeferred($sessionKey)->get();
 
 <a name="cancel-all-bindings" class="anchor"></a>
-### Cancel all bindings
+### Отмена всех связей
 
-It's a good idea to cancel deferred binding and delete the slave objects rather than leaving them as orphans.
+Используйте метод `cancelDeferred()`, чтобы отменить отложенное связывание и удалить дочерние объекты.
 
     $post->cancelDeferred($sessionKey);
 
 <a name="commit-all-bindings" class="anchor"></a>
-### Commit all bindings
+### Зафиксировать все связи
 
-You can commit (bind or unbind) all deferred bindings when you save the master model by providing the session key with the second argument of the `save()` method.
+Используйте **session key** в методе `save()`, чтобы зафиксировать все отложенные связи.
 
     $post = new Post;
     $post->title = "First blog post";
     $post->save(null, $sessionKey);
 
-The same approach works with the model's `create()` method:
+Используйте такой же подход с методом `create()`:
 
     $post = Post::create(['title' => 'First blog post'], $sessionKey);
 
 <a name="lazily-commit-bindings" class="anchor"></a>
-### Lazily commit bindings
+### Ленивая фиксация связей
 
-If you are unable to supply the `$sessionKey` when saving, you can commit the bindings at any time using the the next code:
+Если у Вас нет возможности использовать `$sessionKey` во время сохранения, то Вы можете зафиксировать связывание в любое время, используя следующий код:
 
     $post->commitDeferred($sessionKey);
 
 <a name="cleanup-bindings" class="anchor"></a>
-### Clean up orphaned bindings
+### Очистка осиротевших привязок
 
-Destroys all bindings that have not been committed and are older than 1 day:
+Уничтожает все привязки старше 1 дня, которые не были зафиксированы:
 
     October\Rain\Database\Models\DeferredBinding::cleanUp(1);
 
-> **Note:** October automatically destroys deferred bindings that are older than 5 days. It happens when a back-end user logs into the system.
+> **Примечание:** Октябрь автоматически уничтожает отложенные связывания, которые старше 5 дней. Это происходит, когда пользователь заходит в административную часть сайта.
