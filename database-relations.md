@@ -1,32 +1,32 @@
-# Database Relationships
+# Связи базы данных
 
-- [Introduction](#introduction)
-- [Defining relationships](#defining-relationships)
-- [Relationship types](#relationship-types)
-    - [One To One](#one-to-one)
-    - [One To Many](#one-to-many)
-    - [Many To Many](#many-to-many)
+- [Введение](#introduction)
+- [Определение отношений](#defining-relationships)
+- [Типы отношений](#relationship-types)
+    - [Один к одному](#one-to-one)
+    - [Один ко многим](#one-to-many)
+    - [Многие ко многим](#many-to-many)
     - [Has Many Through](#has-many-through)
-    - [Polymorphic relations](#polymorphic-relations)
-    - [Many To Many Polymorphic relations](#many-to-many-polymorphic-relations)
-- [Querying relations](#querying-relations)
-    - [Eager loading](#eager-loading)
-    - [Constraining eager loads](#constraining-eager-loads)
-    - [Lazy eager loading](#lazy-eager-loading)
-- [Inserting related models](#inserting-related-models)
-    - [Many To Many relations](#inserting-many-to-many-relations)
-    - [Touching parent timestamps](#touching-parent-timestamps)
-- [Deferred binding](#deferred-binding)
+    - [Полиморфические отношения](#polymorphic-relations)
+    - [Полиморфические отношения «многие ко многим»](#many-to-many-polymorphic-relations)
+- [Запросы к отношениям](#querying-relations)
+    - [Жадная загрузка (eager loading)](#eager-loading)
+    - [Ограничения жадной загрузки](#constraining-eager-loads)
+    - [Ленивая жадная загрузка](#lazy-eager-loading)
+- [Вставка связанных моделей](#inserting-related-models)
+    - [Связывание моделей Many to Many](#inserting-many-to-many-relations)
+    - [Обновление времени](#touching-parent-timestamps)
+- [Отложенное связывание](#deferred-binding)
 
-<a name="introduction"></a>
-## Introduction
+<a name="introduction" class="anchor"></a>
+## Введение
 
-Database tables are often related to one another. For example, a blog post may have many comments, or an order could be related to the user who placed it. October makes managing and working with these relationships easy and supports several different types of relationships.
+Таблицы в базе данных часто связаны между собой. Например, статья в блоге может именть множество комментариев и быть связана с ее автором. Октябрь упрощает работу и управление такими отношениями.
 
-<a name="defining-relationships"></a>
-## Defining relationships
+<a name="defining-relationships" class="anchor"></a>
+## Определение отношений
 
-Model relationships are defined as properties on your model classes. An example of defining relationships:
+Отоншения задаются в файле с классом модели. Пример:
 
     class User extends Model
     {
@@ -35,35 +35,35 @@ Model relationships are defined as properties on your model classes. An example 
         ]
     }
 
-Relationships like models themselves, also serve as powerful [query builders](query), accessing relationships as functions provides powerful method chaining and querying capabilities. For example:
+Вы можете использовать [конструктор запросов](./database-query) для работы с отношениями:
 
     $user->posts()->where('is_active', true)->get();
 
-Accessing a relationship as a property is also possible:
+Или вы можете использовать свойства объекта:
 
     $user->posts;
 
-<a name="detailed-relationships"></a>
-### Detailed definitions
+<a name="detailed-relationships" class="anchor"></a>
+### Подробные определения отношений
 
-Each definition can be an array where the key is the relation name and the value is a detail array. The detail array's first value is always the related model class name and all other values are parameters that must have a key name.
+Каждое определение - это массив, где ключ - название отношения, а значение - массив с его свойствами. Первый элемент такого массива - название класса модели, а остальные - дополнительные параметры.
 
     public $hasMany = [
         'posts' => ['Acme\Blog\Models\Post', 'delete' => true]
     ];
 
-The following are parameters that can be used with all relations:
+Ниже приведены параметры, которые можно использовать со всеми отношениями:
 
-Argument | Description
+Параметр | Описание
 ------------- | -------------
-**order** | sorting order for multiple records.
-**conditions** | filters the relation using a raw where query statement.
-**scope** | filters the relation using a supplied scope method.
-**push** | if set to false, this relation will not be saved via `push()`, default: true.
-**delete** | if set to true, the related model will be deleted if the primary model is deleted or relationship is destroyed, default: false.
-**count** | if set to true, the result contains a `count` column only, used for counting relations, default: false.
+**order** | порядок сортировки для нескольких записей.
+**conditions** | фильтрует отношение, используя запрос "raw where".
+**scope** | фильтрует отношение, используя указанный метод.
+**push** | если установлено `false`, то это отношение не будет сохранено при помощи метода `push()`. По умолчанию: `true`.
+**delete** | если установлено `true`, то связанная модель будет удалена при удалении текущей модели или разрушении связи. По умолчанию: `false`.
+**count** | если установлено `true`, то результат будет содержать только `count`. Используется для подсчета связей. По умолчанию: `false`.
 
-Example filter using **order** and **conditions**:
+Пример с использованием **order** и **conditions**:
 
     public $belongsToMany = [
         'categories' => [
@@ -73,7 +73,7 @@ Example filter using **order** and **conditions**:
         ]
     ];
 
-Example filter using **scope**:
+Пример с использованием **scope**:
 
     class Post extends Model
     {
@@ -93,29 +93,29 @@ Example filter using **scope**:
         }
     }
 
-Example filter using **count**:
+Пример с использованием **count**:
 
     public $belongsToMany = [
         'users' => ['Backend\Models\User'],
         'users_count' => ['Backend\Models\User', 'count' => true]
     ];
 
-<a name="relationship-types"></a>
-## Relationship types
+<a name="relationship-types" class="anchor"></a>
+## Типы отношений
 
-The following relations types are available:
+Доступны следующие типы отношений
 
-- [One To One](#one-to-one)
-- [One To Many](#one-to-many)
-- [Many To Many](#many-to-many)
+- [Один к одному](#one-to-one)
+- [Один ко многим](#one-to-many)
+- [Многие ко многим](#many-to-many)
 - [Has Many Through](#has-many-through)
-- [Polymorphic relations](#polymorphic-relations)
-- [Many To Many Polymorphic relations](#many-to-many-polymorphic-relations)
+- [Полиморфические связи](#polymorphic-relations)
+- [Полиморфические связи многие ко многим](#many-to-many-polymorphic-relations)
 
-<a name="one-to-one"></a>
-### One To One
+<a name="one-to-one" class="anchor"></a>
+### Один к одному
 
-A one-to-one relationship is a very basic relation. For example, a `User` model might be associated with one `Phone`. To define this relationship, we add a `phone` entry to the `$hasOne` property on the `User` model.
+Связь вида «один к одному» является очень простой. Например, модель `User` может иметь один `Phone`. Чтобы определить это отношение, мы добавляем запись `phone` в свойство `$hasOne` в модели `User`.
 
     <?php namespace Acme\Blog\Models;
 
@@ -128,25 +128,25 @@ A one-to-one relationship is a very basic relation. For example, a `User` model 
         ];
     }
 
-Once the relationship is defined, we may retrieve the related record using the model property of the same name. These properties are dynamic and allow you to access them as if they were regular attributes on the model:
+После определения отношения мы можем получить связанную запись, используя свойство модели с тем же именем. Эти свойства являются динамическими и позволяют получить к ним доступ, как если бы они были обычными атрибутами модели:
 
     $phone = User::find(1)->phone;
 
-The model assumes the foreign key of the relationship based on the model name. In this case, the `Phone` model is automatically assumed to have a `user_id` foreign key. If you wish to override this convention, you may pass the `key` parameter to the definition:
+Заметьте, что модель предполагает, что внешний ключ (foreign_key) в связанной таблице называется по имени модели плюс `_id`. В данном случае предполагается, что это `user_id`. Если Вы хотите перекрыть стандартное имя, то передайте второй параметр в свойство `$hasOne`:
 
     public $hasOne = [
         'phone' => ['Acme\Blog\Models\Phone', 'key' => 'my_user_id']
     ];
 
-Additionally, the model assumes that the foreign key should have a value matching the `id` column of the parent. In other words, it will look for the value of the user's `id` column in the `user_id` column of the `Phone` record. If you would like the relationship to use a value other than `id`, you may pass the `otherKey` parameter to the definition:
+Если же в модели, для которой Вы строите отношение (в данном случае `User`) ключ находится не в столбце id, то Вы можете указать его в качесте третьего аргумента:
 
     public $hasOne = [
         'phone' => ['Acme\Blog\Models\Phone', 'key' => 'my_user_id', 'otherKey' => 'my_id']
     ];
 
-#### Defining the inverse of the relation
+#### Определение обратного отношения
 
-Now that we can access the `Phone` model from our `User`. Let's do the opposite and define a relationship on the `Phone` model that will let us access the `User` that owns the phone. We can define the inverse of a `hasOne` relationship using the `$belongsTo` property:
+Для создания обратного отношения в модели `Phone` используйте свойство `$belongsTo` («принадлежит к»):
 
     class Phone extends Model
     {
@@ -155,22 +155,23 @@ Now that we can access the `Phone` model from our `User`. Let's do the opposite 
         ];
     }
 
-In the example above, the model will try to match the `user_id` from the `Phone` model to an `id` on the `User` model. It determines the default foreign key name by examining the name of the relationship definition and suffixing the name with `_id`. However, if the foreign key on the `Phone` model is not `user_id`, you may pass a custom key name using the `key` parameter on the definition:
+В примере выше модель будет искать поле `user_id` в таблице с телефонами. Если Вы хотите назвать этот ключ по-другому, то передайте это имя вторым параметром в свойстве `$belongsTo`:
 
     public $belongsTo = [
         'user' => ['Acme\Blog\Models\User', 'key' => 'my_user_id']
     ];
 
-If your parent model does not use `id` as its primary key, or you wish to join the child model to a different column, you may pass the `otherKey` parameter to the definition specifying your parent table's custom key:
+
+Если Ваша родительская модель не использует `id` в качестве основного ключа, или Вы хотите присоединиться к дочерней модели через другой столбец, то передайте параметр `otherKey` с названием столбца:
 
     public $belongsTo = [
         'user' => ['Acme\Blog\Models\User', 'key' => 'my_user_id', 'otherKey' => 'my_id']
     ];
 
-<a name="one-to-many"></a>
-### One To Many
+<a name="one-to-many" class="anchor"></a>
+### Один ко многим
 
-A one-to-many relationship is used to define relationships where a single model owns any amount of other models. For example, a blog post may have an infinite number of comments. Like all other relationships, one-to-many relationships are defined adding an entry to the `$hasMany` property on your model:
+Примером отношения «один ко многим» является статья в блоге, которая имеет несколько («много») комментариев. Вы можете смоделировать это отношение следующим образом:
 
     class Post extends Model
     {
@@ -179,9 +180,9 @@ A one-to-many relationship is used to define relationships where a single model 
         ];
     }
 
-Remember, the model will automatically determine the proper foreign key column on the `Comment` model. By convention, it will take the "snake case" name of the owning model and suffix it with `_id`. So for this example, we can assume the foreign key on the `Comment` model is `post_id`.
+Помните, что модель автоматически определит правильный столбец внешнего ключа в модели `Comment`. По соглашению, это название модели в формате "snake case" и суффикс `_id`. В этом примере `post_id` - внешний ключ для модели `Comment`.
 
-Once the relationship has been defined, we can access the collection of comments by accessing the `comments` property. Remember, since the model provides "dynamic properties", we can access relationships as if they were defined as properties on the model:
+Теперь Вы можете получить все комментарии с помощью "динамического свойства":
 
     $comments = Post::find(1)->comments;
 
@@ -189,19 +190,19 @@ Once the relationship has been defined, we can access the collection of comments
         //
     }
 
-Of course, since all relationships also serve as query builders, you can add further constraints to which comments are retrieved by calling the `comments` method and continuing to chain conditions onto the query:
+Вы также можете добавить ограничения на получаемые комментарии при помощи метода `comments` и необходимых условий:
 
     $comments = Post::find(1)->comments()->where('title', 'foo')->first();
 
-Like the `hasOne` relation, you may also override the foreign and local keys by passing the `key` and `otherKey` parameters on the definition respectively:
+Вы также можете переопределить внешний и внутренний ключ при помощи параметров `key` и`otherKey` соответственно:
 
     public $hasMany = [
         'comments' => ['Acme\Blog\Models\Comment', 'key' => 'my_post_id', 'otherKey' => 'my_id']
     ];
 
-#### Defining the inverse of the relation
+#### Определение обратного отношения
 
-Now that we can access all of a post's comments, let's define a relationship to allow a comment to access its parent post. To define the inverse of a `hasMany` relationship, define the `$belongsTo` property on the child model:
+Для определения обратного отношения используйте свойство `$belongsTo` :
 
     class Comment extends Model
     {
@@ -210,30 +211,25 @@ Now that we can access all of a post's comments, let's define a relationship to 
         ];
     }
 
-Once the relationship has been defined, we can retrieve the `Post` model for a `Comment` by accessing the `post` "dynamic property":
+После определения отношения Вы можете получить модель `Post` для` Comment`, обратившись к "динамическому свойству" `post`:
 
     $comment = Comment::find(1);
 
     echo $comment->post->title;
 
-In the example above, the model will try to match the `post_id` from the `Comment` model to an `id` on the `Post` model. It determines the default foreign key name by examining the name of the relationship  and suffixing it with `_id`. However, if the foreign key on the `Comment` model is not `post_id`, you may pass a custom key name using the `key` parameter:
-
-    public $belongsTo = [
-        'post' => ['Acme\Blog\Models\Post', 'key' => 'my_post_id']
-    ];
-
-If your parent model does not use `id` as its primary key, or you wish to join the child model to a different column, you may pass the `otherKey` parameter to the definition specifying your parent table's custom key:
+Вы также можете переопределить внешний и внутренний ключ при помощи параметров `key` и`otherKey` соответственно:
 
     public $belongsTo = [
         'post' => ['Acme\Blog\Models\Post', 'key' => 'my_post_id', 'otherKey' => 'my_id']
     ];
 
-<a name="many-to-many"></a>
-### Many To Many
+<a name="many-to-many" class="anchor"></a>
+### Многие ко многим
 
-Many-to-many relations are slightly more complicated than `hasOne` and `hasMany` relationships. An example of such a relationship is a user with many roles, where the roles are also shared by other users. For example, many users may have the role of "Admin". To define this relationship, three database tables are needed: `users`, `roles`, and `role_user`. The `role_user` table is derived from the alphabetical order of the related model names, and contains the `user_id` and `role_id` columns.
+Отношения типа «многие ко многим» являются более сложными для понимания, чем остальные виды отношений. Примером может служить пользователь, имеющий много ролей, где роли также относятся ко многим пользователям. Например, один пользователь может иметь роль «Admin». Нужны три таблицы для этой связи: `users`, `roles` и `role_user`. Название таблицы `role_user` происходит от упорядоченного по алфавиту имён связанных моделей и должна иметь поля `user_id` и `role_id`.
 
-Below is an example that shows the [database table structure](../plugin/updates#migration-files) used to create the join table.
+
+Пример [структуры таблицы в БД](./plugin-updates#migration-files), которая может быть использована для связи моделей.
 
     Schema::create('role_user', function($table)
     {
@@ -242,7 +238,7 @@ Below is an example that shows the [database table structure](../plugin/updates#
         $table->primary(['user_id', 'role_id']);
     });
 
-Many-to-many relationships are defined adding an entry to the `$belongsToMany` property on your model class. For example, let's define the `roles` method on our `User` model:
+Вы можете определить отношение «многие ко многим» при помощи свойства `$belongsToMany` в классе модели. Пример:
 
     class User extends Model
     {
@@ -251,7 +247,7 @@ Many-to-many relationships are defined adding an entry to the `$belongsToMany` p
         ];
     }
 
-Once the relationship is defined, you may access the user's roles using the `roles` dynamic property:
+Теперь Вы можете получить роли пользователя при помощи "динамического свойства" `roles`:
 
     $user = User::find(1);
 
@@ -259,17 +255,17 @@ Once the relationship is defined, you may access the user's roles using the `rol
         //
     }
 
-Of course, like all other relationship types, you may call the `roles` method to continue chaining query constraints onto the relationship:
+Вы также можете добавить ограничения на получаемые роли при помощи метода `roles` и необходимых условий:
 
     $roles = User::find(1)->roles()->orderBy('name')->get();
 
-As mentioned previously, to determine the table name of the relationship's joining table, the model will join the two related model names in alphabetical order. However, you are free to override this convention. You may do so by passing the `table` parameter to the `belongsToMany` definition:
+Вы также можете переопределить название таблицы, которая содержит связи:
 
     public $belongsToMany = [
         'roles' => ['Acme\Blog\Models\Role', 'table' => 'acme_blog_role_user']
     ];
 
-In addition to customizing the name of the joining table, you may also customize the column names of the keys on the table by passing additional parameters to the `belongsToMany` definition. The `key` parameter is the foreign key name of the model on which you are defining the relationship, while the `otherKey` parameter is the foreign key name of the model that you are joining to:
+Вы также можете переопределить внешний и внутренний ключ при помощи параметров `key` и`otherKey` соответственно:
 
     public $belongsToMany = [
         'roles' => [
@@ -280,9 +276,9 @@ In addition to customizing the name of the joining table, you may also customize
         ]
     ];
 
-#### Defining the inverse of the relationship
+#### Определение обратного отношения
 
-To define the inverse of a many-to-many relationship, you simply place another `$belongsToMany` property on your related model. To continue our user roles example, let's define the `users` relationship on the `Role` model:
+Используйте свойство `$belongsToMany`, чтобы определить обратное отношение и получить, например, всех пользователей с одинаковой ролью:
 
     class Role extends Model
     {
@@ -291,11 +287,9 @@ To define the inverse of a many-to-many relationship, you simply place another `
         ];
     }
 
-As you can see, the relationship is defined exactly the same as its `User` counterpart, with the exception of simply referencing the `Acme\Blog\Models\User` model. Since we're reusing the `$belongsToMany` property, all of the usual table and key customization options are available when defining the inverse of many-to-many relationships.
+#### Получение промежуточных столбцов таблицы
 
-#### Retrieving intermediate table columns
-
-As you have already learned, working with many-to-many relations requires the presence of an intermediate join table. Models provide some very helpful ways of interacting with this table. For example, let's assume our `User` object has many `Role` objects that it is related to. After accessing this relationship, we may access the intermediate table using the `pivot` attribute on the models:
+Как Вы уже узнали, работа с отношениями «многие ко многим» требует наличия промежуточной таблицы. Модели предоставляют некоторые очень полезные способы взаимодействия с этой таблицей. Например, предположим, что наш объект `User` имеет много объектов `Role`, с которыми он связан. После доступа к этой связи мы можем получить доступ к промежуточной таблице, используя атрибут `pivot` для моделей:
 
     $user = User::find(1);
 
@@ -303,9 +297,9 @@ As you have already learned, working with many-to-many relations requires the pr
         echo $role->pivot->created_at;
     }
 
-Notice that each `Role` model we retrieve is automatically assigned a `pivot` attribute. This attribute contains a model representing the intermediate table, and may be used like any other model.
+Обратите внимание на то, что каждой модели `Role`, которую мы получаем, автоматически присваивается атрибут `pivot`. Этот атрибут содержит модель, представляющую собой промежуточную таблицу, и может использоваться как любая другая модель.
 
-By default, only the model keys will be present on the `pivot` object. If your pivot table contains extra attributes, you must specify them when defining the relationship:
+По умолчанию в такой модели будут доступны только ключи. Если ваша промежуточная таблица содержит дополнительные атрибуты, то Вы должны указать их при определении отношения:
 
     public $belongsToMany = [
         'roles' => [
@@ -314,27 +308,27 @@ By default, only the model keys will be present on the `pivot` object. If your p
         ]
     ];
 
-If you want your pivot table to have automatically maintained `created_at` and `updated_at` timestamps, use the `timestamps` parameter on the relationship definition:
+Если Вы хотите, чтобы сводная таблица автоматически сохраняла отметки времени`created_at` и `updated_at`, используйте параметр `timestamps` в определении отношения:
 
     public $belongsToMany = [
         'roles' => ['Acme\Blog\Models\Role', 'timestamps' => true]
     ];
 
-These are the parameters supported for `belongsToMany` relations:
+Следующие параметры поддерживаются отношениями `belongsToMany`:
 
-Argument | Description
+Параметр | Описание
 ------------- | -------------
-**table** | the name of the join table.
-**key** | the key column name of the defining model.
-**otherKey** | the key column name of the related model.
-**pivot** | an array of pivot columns found in the join table, attributes are available via `$model->pivot`.
-**pivotModel** | specify a custom model class to return when accessing the pivot relation. Defaults to `October\Rain\Database\Pivot`.
-**timestamps** | if true, the join table should contain `created_at` and `updated_at` columns. Default: false
+**table** | название промежуточной таблицы.
+**key** | внешний ключ.
+**otherKey** | внутренний ключ.
+**pivot** | массив со свойствами из промежуточной таблицы.
+**pivotModel** | пользовательский класс модели. По умолчанию: `October\Rain\Database\Pivot`.
+**timestamps** | добавлять или не добавлять отметки времени `created_at` и `updated_at`. По умолчанию: `false`
 
-<a name="has-many-through"></a>
-### Has Many Through
+<a name="has-many-through" class="anchor"></a>
+### Множество связей через третью таблицу (Has Many Through)
 
-The has-many-through relationship provides a convenient short-cut for accessing distant relations via an intermediate relation. For example, a `Country` model might have many `Post` models through an intermediate `User` model. In this example, you could easily gather all blog posts for a given country. Let's look at the tables required to define this relationship:
+Отношение «has many through» обеспечивает удобный короткий путь для доступа к удаленным отношениям через промежуточные отношения. Например, сделаем так, чтобы модель `Country` могла иметь много `Post` через модель `User`. Структура таблиц такая:
 
     countries
         id - integer
@@ -350,9 +344,9 @@ The has-many-through relationship provides a convenient short-cut for accessing 
         user_id - integer
         title - string
 
-Though `posts` does not contain a `country_id` column, the `hasManyThrough` relation provides access to a country's posts via `$country->posts`. To perform this query, the model inspects the `country_id` on the intermediate `users` table. After finding the matching user IDs, they are used to query the `posts` table.
+Хотя `posts` и не содержит `country_id`, отношение `hasManyThrough` позволяет получить доступ до стран через `$country->posts`. Чтобы выполнить этот запрос, модель проверяет существование `country_id` в промежуточной таблице `users`. После поиска совпадающих идентификаторов пользователей они используются для запроса таблицы `posts`. 
 
-Now that we have examined the table structure for the relationship, let's define it on the `Country` model:
+Давайте теперь определим отношение для модели `Country`:
 
     class Country extends Model
     {
@@ -364,9 +358,9 @@ Now that we have examined the table structure for the relationship, let's define
         ];
     }
 
-The first argument passed to the `$hasManyThrough` relation is the name of the final model we wish to access, while the `through` parameter is the name of the intermediate model.
+Первый аргумент, переданный в отношение `$hasManyThrough` - это имя конечной модели, к которой мы хотим получить доступ, а параметр `through` - это имя промежуточной модели.
 
-Typical foreign key conventions will be used when performing the relationship's queries. If you would like to customize the keys of the relationship, you may pass them as the `key` and `throughKey` parameters to the `$hasManyThrough` definition. The `key` parameter is the name of the foreign key on the intermediate model, while the `throughKey` parameter is the name of the foreign key on the final model.
+При выполнении запросов используются стандартные соглашения с внешними ключами, где `key` - это название внешнего ключа промежуточной модели, а параметр` throughKey` - название внешнего ключа в конечной модели.
 
     public $hasManyThrough = [
         'posts' => [
@@ -377,12 +371,12 @@ Typical foreign key conventions will be used when performing the relationship's 
         ],
     ];
 
-<a name="polymorphic-relations"></a>
-### Polymorphic relations
+<a name="polymorphic-relations" class="anchor"></a>
+### Полиморфические отношения
 
-#### Table structure
+#### Структура таблицы
 
-Polymorphic relations allow a model to belong to more than one other model on a single association. For example, imagine you want to store photos for your staff members and for your products. Using polymorphic relationships, you can use a single `photos` table for both of these scenarios. First, let's examine the table structure required to build this relationship:
+Полиморфные отношения позволяют модели быть связанной с более, чем одной моделью. Например, модель `Photo` может быть связана с моделям `Staff` (сотрудник) и `Product` (товар). Вы можете задать такое отношение следующим образом:
 
     staff
         id - integer
@@ -398,11 +392,11 @@ Polymorphic relations allow a model to belong to more than one other model on a 
         imageable_id - integer
         imageable_type - string
 
-Two important columns to note are the `imageable_id` and `imageable_type` columns on the `photos` table. The `imageable_id` column will contain the ID value of the owning staff or product, while the `imageable_type` column will contain the class name of the owning model. The `imageable_type` column is how the ORM determines which "type" of owning model to return when accessing the `imageable` relation.
+Следует особо отметить два столбца: `imageable_id` и `imageable_type` в таблице `photos`. Столбец `imageable_id` будет содержать значения идентификаторов владельцев или товаров, в то время как столбец `imageable_type` будет содержать имя класса модели владельца. Столбец `imageable_type` - это то, как ORM определяет, какой «тип» модели должен возвращаться при доступе к отношению `imageable`.
 
-#### Model structure
+#### Структура модели
 
-Next, let's examine the model definitions needed to build this relationship:
+Давайте теперь рассмотрим описание модели, необходимое для построения этого отношения:
 
     class Photo extends Model
     {
@@ -425,9 +419,10 @@ Next, let's examine the model definitions needed to build this relationship:
         ];
     }
 
-#### Retrieving Polymorphic relations
+#### Чтение полиморфной связи
 
-Once your database table and models are defined, you may access the relationships via your models. For example, to access all of the photos for a staff member, we can simply use the `photos` dynamic property:
+После определения таблицы и моделей базы данных Вы можете получить доступ к отношениям через свои модели. Например, чтобы получить доступ ко всем фотографиям для сотрудника достаточно просто использовать "динамическое свойство" `photos`:
+
 
     $staff = Staff::find(1);
 
@@ -435,20 +430,20 @@ Once your database table and models are defined, you may access the relationship
         //
     }
 
-You may also retrieve the owner of a polymorphic relation from the polymorphic model by accessing the name of the `morphTo` relationship. In our case, that is the `imageable` definition on the `Photo` model. So, we will access it as a dynamic property:
+Вы также можете получить владельца полиморфного отношения из полиморфной модели, обратившись к названию отношения `morphTo`. В нашем случае это `imageable` в модели `Photo`. Далее используем "динамическое свойство":
 
     $photo = Photo::find(1);
 
     $imageable = $photo->imageable;
 
-The `imageable` relation on the `Photo` model will return either a `Staff` or `Product` instance, depending on which type of model owns the photo.
+Отношение `imageable` в модели `Photo` будет возвращать либо экземпляр `Staff`, либо` Product`, в зависимости от того, какому типу модели принадлежат фотографии.
 
-<a name="many-to-many-polymorphic-relations"></a>
-### Many To Many Polymorphic relations
+<a name="many-to-many-polymorphic-relations" class="anchor"></a>
+### Полиморфные отношения «многие ко многим»
 
-#### Table structure
+#### Структура таблицы
 
-In addition to traditional polymorphic relations, you may also define "many-to-many" polymorphic relations. For example, a blog `Post` and `Video` model could share a polymorphic relation to a `Tag` model. Using a many-to-many polymorphic relation allows you to have a single list of unique tags that are shared across blog posts and videos. First, let's examine the table structure:
+Помимо стандартных полиморфных отношений, Вы можете определить полиморфные отношения типа «многие ко многим». Например, у нас есть блог, в котором могут публиковаться `Post` и `Video`, и каждый из них может иметь набор тэгов `Tag`. Использование полиморфного отношения «многие ко многим» позволяет Вам иметь единый список уникальных тегов, которые используются и в сообщениях, и в видео. Сначала рассмотрим структуру таблицы:
 
     posts
         id - integer
@@ -467,9 +462,9 @@ In addition to traditional polymorphic relations, you may also define "many-to-m
         taggable_id - integer
         taggable_type - string
 
-#### Model structure
+#### Структура модели
 
-Next, we're ready to define the relationships on the model. The `Post` and `Video` models will both have a `tags` relation defined in the `$morphToMany` property on the base model class:
+Затем опишем отношение в моделях `Post` и` Video` в свойстве `$morphToMany`:
 
     class Post extends Model
     {
@@ -478,9 +473,9 @@ Next, we're ready to define the relationships on the model. The `Post` and `Vide
         ];
     }
 
-#### Defining the inverse of the relationship
+#### Определение обратного отношения
 
-Next, on the `Tag` model, you should define a relation for each of its related models. So, for this example, we will define a `posts` relation and a `videos` relation:
+В модели `Tag` Вы должны указать связь к необходимым моделям. Пример:
 
     class Tag extends Model
     {
@@ -490,9 +485,9 @@ Next, on the `Tag` model, you should define a relation for each of its related m
         ];
     }
 
-#### Retrieving The relationship
+#### Получение отношения
 
-Once your database table and models are defined, you may access the relationships via your models. For example, to access all of the tags for a post, you can simply use the `tags` dynamic property:
+После определения таблицы и моделей базы данных Вы можете получить доступ к отношениям через свои модели. Например, чтобы получить доступ ко всем тегам для поста, используйте "динамическое свойство" `tags`:
 
     $post = Post::find(1);
 
@@ -500,7 +495,7 @@ Once your database table and models are defined, you may access the relationship
         //
     }
 
-You may also retrieve the owner of a polymorphic relation from the polymorphic model by accessing the name of the relationship defined in the `$morphedByMany` property. In our case, that is the `posts` or `videos` methods on the `Tag` model. So, you will access those relations as dynamic properties:
+Вы также можете получить владельца полиморфного отношения из полиморфной модели, обратившись к имени отношения, определенного в свойстве `$morphedByMany`. В нашем случае это методы `posts` или` videos` в модели `Tag`. Таким образом, вы получите доступ к этим отношениям как "динамические свойства":
 
     $tag = Tag::find(1);
 
@@ -508,12 +503,12 @@ You may also retrieve the owner of a polymorphic relation from the polymorphic m
         //
     }
 
-<a name="querying-relations"></a>
-## Querying relations
+<a name="querying-relations" class="anchor"></a>
+## Запросы к отношениям
 
-Since all types of Model relationships can be called via functions, you may call those functions to obtain an instance of the relationship without actually executing the relationship queries. In addition, all types of relationships also serve as [query builders](query), allowing you to continue to chain constraints onto the relationship query before finally executing the SQL against your database.
+Поскольку все типы отношений Модели могут быть вызваны через функции, то Вы можете вызывать эти функции для получения экземпляра отношения без фактического выполнения запросов. Кроме того, все типы отношений также используют [конструктор запросов](./database-query), позволяя Вам накладывать ограничения, фильтровать и сортировать отношения прежде чем выполнить SQL запрос.
 
-For example, imagine a blog system in which a `User` model has many associated `Post` models:
+Например, у нас есть блог, в котором модель `User`связана с моделью `Post`:
 
     class User extends Model
     {
@@ -522,17 +517,15 @@ For example, imagine a blog system in which a `User` model has many associated `
         ];
     }
 
-You may query the `posts` relationship and add additional constraints to the relationship like so:
+Вы можете получить все опубликованные записи пользователя следующим образом:
 
     $user = User::find(1);
 
     $user->posts()->where('active', 1)->get();
 
-Note that you are able to use any of the [query builder](query) methods on the relationship!
+#### Методы отношений и Динамические свойства
 
-#### Relationship methods Vs. Dynamic properties
-
-If you do not need to add additional constraints to a relationship query, you may simply access the relationship as if it were a property. For example, continuing to use our `User` and `Post` example models, we may access all of a user's posts like so:
+Если Вам не нужны дополнительные ограничения на запрос, то лучше всего использовать динамические свойства. Например, продолжая рассматривать модели `User` и `Post`, Вы можете получить доступ ко всем сообщениям пользователя следующим образом:
 
     $user = User::find(1);
 
@@ -540,36 +533,38 @@ If you do not need to add additional constraints to a relationship query, you ma
         //
     }
 
-Dynamic properties are "lazy loading", meaning they will only load their relationship data when you actually access them. Because of this, developers often use [eager loading](#eager-loading) to pre-load relationships they know will be accessed after loading the model. Eager loading provides a significant reduction in SQL queries that must be executed to load a model's relations.
 
-#### Querying relationship existence
+Динамические свойства являются "lazy loading", то есть они будут загружать данные только тогда, когда Вы хотите их получить. Также разработчики часто используют ["eager loading"](#eager-loading), для получения предварительно загруженных отношений, которые, как они знают, будут доступны после загрузки модели. 
 
-When accessing the records for a model, you may wish to limit your results based on the existence of a relationship. For example, imagine you want to retrieve all blog posts that have at least one comment. To do so, you may pass the name of the relationship to the `has` method:
+#### Запрос на существование отношений
+
+Вы можете ограничить свои результаты при доступе к записям модели. Например, представьте, что Вы хотите получить все сообщения в блоге, содержащие хотя бы один комментарий. Для этого вы можете передать имя отношения методу `has`:
 
     // Retrieve all posts that have at least one comment...
     $posts = Post::has('comments')->get();
 
-You may also specify an operator and count to further customize the query:
+Вы также можете использовать операторы сравнения:
 
     // Retrieve all posts that have three or more comments...
     $posts = Post::has('comments', '>=', 3)->get();
 
-Nested `has` statements may also be constructed using "dot" notation. For example, you may retrieve all posts that have at least one comment and vote:
+Вы также можете использовать точечную нотацию. Например, чтобы получить все записи, у которой есть хотя бы один оцененный комментарий:
 
     // Retrieve all posts that have at least one comment with votes...
     $posts = Post::has('comments.votes')->get();
 
-If you need even more power, you may use the `whereHas` and `orWhereHas` methods to put "where" conditions on your `has` queries. These methods allow you to add customized constraints to a relationship constraint, such as checking the content of a comment:
+Вы также можете использовать методы `whereHas` и `orWhereHas`:
 
     // Retrieve all posts with at least one comment containing words like foo%
     $posts = Post::whereHas('comments', function ($query) {
         $query->where('content', 'like', 'foo%');
     })->get();
 
-<a name="eager-loading"></a>
-### Eager loading
+<a name="eager-loading" class="anchor"></a>
+### Жадная загрузка (eager loading)
 
-When accessing relationships as properties, the relationship data is "lazy loaded". This means the relationship data is not actually loaded until you first access the property. However, models can "eager load" relationships at the time you query the parent model. Eager loading alleviates the N + 1 query problem. To illustrate the N + 1 query problem, consider a `Book` model that is related to `Author`:
+
+Данные об отношениях подгружаются только в момент обращения к динамическому свойству. Жадная загрузка (eager loading) призвана устранить проблему N+1. Например, представьте, что у нас есть модель `Book`, которая связана с моделью `Author`. Отношение определено как:
 
     class Book extends Model
     {
@@ -578,7 +573,7 @@ When accessing relationships as properties, the relationship data is "lazy loade
         ];
     }
 
-Now let's retrieve all books and their authors:
+Теперь загрузим все книги и их авторов:
 
     $books = Book::all();
 
@@ -586,9 +581,9 @@ Now let's retrieve all books and their authors:
         echo $book->author->name;
     }
 
-This loop will execute 1 query to retrieve all of the books on the table, then another query for each book to retrieve the author. So, if we have 25 books, this loop would run 26 queries: 1 for the original book, and 25 additional queries to retrieve the author of each book.
+Цикл выполнит один запрос для получения всех книг в таблице, а затем будет выполнять по одному запросу на каждую книгу для получения автора. Таким образом, если у нас 25 книг, то потребуется 26 запросов.
 
-Thankfully we can use eager loading to reduce this operation to just 2 queries. When querying, you may specify which relationships should be eager loaded using the `with` method:
+Теперь давайте заранее получим всех авторов при помощи методв `with`:
 
     $books = Book::with('author')->get();
 
@@ -596,28 +591,28 @@ Thankfully we can use eager loading to reduce this operation to just 2 queries. 
         echo $book->author->name;
     }
 
-For this operation only two queries will be executed:
+Тогда будут выполнены всего два запроса:
 
     select * from books
 
     select * from authors where id in (1, 2, 3, 4, 5, ...)
 
-#### Eager loading multiple relationships
+#### Жадная загрузка нескольких отношений
 
-Sometimes you may need to eager load several different relationships in a single operation. To do so, just pass additional arguments to the `with` method:
+Иногда Вам может потребоваться жадная загрузка нескольких разных отношений за одну операцию. Для этого просто передайте дополнительные аргументы методу `with`:
 
     $books = Book::with('author', 'publisher')->get();
 
-#### Nested eager loading
+#### Вложенная жадная загрузка
 
-To eager load nested relationships, you may use "dot" syntax. For example, let's eager load all of the book's authors and all of the author's personal contacts in one statement:
+Используйте точечную нотацию, чтобы получить вложенные отношения. Например, давайте получим всех авторов и их контакты:
 
     $books = Book::with('author.contacts')->get();
 
-<a name="constraining-eager-loads"></a>
-### Constraining eager loads
+<a name="constraining-eager-loads" class="anchor"></a>
+### Ограничения жадной загрузки
 
-Sometimes you may wish to eager load a relationship, but also specify additional query constraints for the eager loading query. Here's an example:
+Иногда вам может быть нужно не только загрузить отношение, но также указать условие для его загрузки:
 
     $users = User::with([
         'posts' => function ($query) {
@@ -625,7 +620,7 @@ Sometimes you may wish to eager load a relationship, but also specify additional
         }
     ])->get();
 
-In this example, the model will only eager load posts if the post's `title` column contains the word `first`. Of course, you may call other [query builder](query) to further customize the eager loading operation:
+В этом примере мы загружаем сообщения пользователя, но только те, заголовок которых содержит подстроку `first`.
 
     $users = User::with([
         'posts' => function ($query) {
@@ -633,10 +628,10 @@ In this example, the model will only eager load posts if the post's `title` colu
         }
     ])->get();
 
-<a name="lazy-eager-loading"></a>
-### Lazy eager loading
+<a name="lazy-eager-loading" class="anchor"></a>
+### Ленивая жадная загрузка
 
-Sometimes you may need to eager load a relationship after the parent model has already been retrieved. For example, this may be useful if you need to dynamically decide whether to load related models:
+Можно подгрузить отношения динамически, т.е. после того как вы получили коллекцию основных объектов. Это может быть полезно тогда, когда Вам неизвестно, понадобятся ли они в дальнейшем:
 
     $books = Book::all();
 
@@ -644,7 +639,7 @@ Sometimes you may need to eager load a relationship after the parent model has a
         $books->load('author', 'publisher');
     }
 
-If you need to set additional query constraints on the eager loading query, you may pass a `Closure` to the `load` method:
+Вы также можете дополнить запрос при помощи функции-замыкания:
 
     $books->load([
         'author' => function ($query) {
@@ -652,12 +647,12 @@ If you need to set additional query constraints on the eager loading query, you 
         }
     ]);
 
-<a name="inserting-related-models"></a>
-## Inserting related models
+<a name="inserting-related-models" class="anchor"></a>
+## Вставка связанных моделей
 
-#### The Save method
+#### Метод Save
 
-October provides convenient methods for adding new models to relationships. For example, perhaps you need to insert a new `Comment` for a `Post` model. Instead of manually setting the `post_id` attribute on the `Comment`, you may insert the `Comment` directly from the relationship's `save` method:
+Часто Вам нужно будет добавить связанную модель. Например, Вы можете добавить новый комментарий к посту. Вместо явного указания значения для поля `post_id` Вы можете вставить модель через её родительскую модель - `Post`:
 
     $comment = new Comment(['message' => 'A new comment.']);
 
@@ -665,9 +660,9 @@ October provides convenient methods for adding new models to relationships. For 
 
     $comment = $post->comments()->save($comment);
 
-Notice that we did not access the `comments` relationship as a dynamic property. Instead, we called the `comments` method to obtain an instance of the relationship. The `save` method will automatically add the appropriate `post_id` value to the new `Comment` model.
+Обратите внимание, что мы не получили доступ к отношению `comments` как динамическому свойству. Вместо этого мы вызвали метод `comments`, чтобы получить экземпляр отношения. Метод `save` автоматически добавит соответствующее значение` post_id` к новой модели `Comment`.
 
-If you need to save multiple related models, you may use the `saveMany` method:
+Если вам нужно сохранить несколько связанных моделей, вы можете использовать метод `saveMany`:
 
     $post = Post::find(1);
 
@@ -676,15 +671,15 @@ If you need to save multiple related models, you may use the `saveMany` method:
         new Comment(['message' => 'Another comment.']),
     ]);
 
-#### Save & Many To Many relations
+#### Save и Отношения Many To Many
 
-When working with a many-to-many relationship, the `save` method accepts an array of additional intermediate table attributes as its second argument:
+При работе с отношениями «многие ко многим» метод `save` принимает в качестве второго аргумента массив дополнительных атрибутов промежуточной таблицы:
 
     User::find(1)->roles()->save($role, ['expires' => $expires]);
 
-#### The Create method
+#### Метод Create
 
-In addition to the `save` and `saveMany` methods, you may also use the `create` method, which accepts an array of attributes, creates a model, and inserts it into the database. Again, the difference between `save` and `create` is that `save` accepts a full model instance while `create` accepts a plain PHP `array`:
+В дополение к методам `save` и `saveMany`, Вы можете также использовать метод `create`, который принимает массив атрибутов, создает модель и добавляет запись в БД. В отличие от метода `save`, метод `create` не использует экземпляр модели, а принимает обычный PHP `array`:
 
     $post = Post::find(1);
 
@@ -692,12 +687,12 @@ In addition to the `save` and `saveMany` methods, you may also use the `create` 
         'message' => 'A new comment.',
     ]);
 
-Before using the `create` method, be sure to review the documentation on attribute [mass assignment](model#mass-assignment).
+Перед использованием метода `create` убедитесь, что у Вас настроено [массовое заполнение ](model#mass-assignment).
 
-<a name="updating-belongs-to-relationships"></a>
-#### Updating "Belongs To" relationships
+<a name="updating-belongs-to-relationships" class="anchor"></a>
+#### Обновление отношений "Belongs To"
 
-When updating a `belongsTo` relationship, you may use the `associate` method. This method will set the foreign key on the child model:
+При обновлении отношения `belongsTo` Вы можете использовать метод `associate`. Этот метод установит внешний ключ для дочерней модели:
 
     $account = Account::find(10);
 
@@ -705,28 +700,28 @@ When updating a `belongsTo` relationship, you may use the `associate` method. Th
 
     $user->save();
 
-When removing a `belongsTo` relationship, you may use the `dissociate` method. This method will reset the foreign key as well as the relation on the child model:
+Используйте метод `dissociate`, чтобы разорвать связь между моделями и удалить внешний ключ:
 
     $user->account()->dissociate();
 
     $user->save();
 
-<a name="inserting-many-to-many-relations"></a>
-### Many To Many relations
+<a name="inserting-many-to-many-relations" class="anchor"></a>
+### Связывание моделей Many to Many
 
-#### Attaching / Detaching
+#### Прикрепление / Отсоединение
 
-When working with many-to-many relationships, Models provide a few additional helper methods to make working with related models more convenient. For example, let's imagine a user can have many roles and a role can have many users. To attach a role to a user by inserting a record in the intermediate table that joins the models, use the `attach` method:
+Вы также можете вставлять связанные модели при работе с отношениями «многие ко многим». Продолжим использовать наши модели `User` и `Role` в качестве примеров (`User` может иметь несколько `Role`). Вы можем легко привязать новые роли к пользователю методом `attach`:
 
     $user = User::find(1);
 
     $user->roles()->attach($roleId);
 
-When attaching a relationship to a model, you may also pass an array of additional data to be inserted into the intermediate table:
+Вы также можете передать массив атрибутов, которые должны быть сохранены в связующей (pivot) таблице для этого отношения:
 
     $user->roles()->attach($roleId, ['expires' => $expires]);
 
-Of course, sometimes it may be necessary to remove a role from a user. To remove a many-to-many relationship record, use the `detach` method. The `detach` method will remove the appropriate record out of the intermediate table; however, both models will remain in the database:
+Конечно, существует противоположность `attach` - метод `detach`:
 
     // Detach a single role from the user...
     $user->roles()->detach($roleId);
@@ -734,7 +729,7 @@ Of course, sometimes it may be necessary to remove a role from a user. To remove
     // Detach all roles from the user...
     $user->roles()->detach();
 
-For convenience, `attach` and `detach` also accept arrays of IDs as input:
+И `attach` и `detach` могут принимать массивы ID:
 
     $user = User::find(1);
 
@@ -742,20 +737,20 @@ For convenience, `attach` and `detach` also accept arrays of IDs as input:
 
     $user->roles()->attach([1 => ['expires' => $expires], 2, 3]);
 
-#### Syncing For convenience
+#### Использование Sync для привязки моделей "многие ко многим"
 
-You may also use the `sync` method to construct many-to-many associations. The `sync` method accepts an array of IDs to place on the intermediate table. Any IDs that are not in the given array will be removed from the intermediate table. So, after this operation is complete, only the IDs in the array will exist in the intermediate table:
+Вы также можете использовать метод `sync` для привязки связанных моделей. Этот метод принимает массив ID, которые должны быть сохранены в связующей таблице. Когда операция завершится только переданные ID будут существовать в промежуточной таблице для данной модели:
 
     $user->roles()->sync([1, 2, 3]);
 
-You may also pass additional intermediate table values with the IDs:
+Вы также можете передать дополнительные атрибуты в промежуточную таблицу:
 
     $user->roles()->sync([1 => ['expires' => true], 2, 3]);
 
-<a name="touching-parent-timestamps"></a>
-### Touching parent timestamps
+<a name="touching-parent-timestamps" class="anchor"></a>
+### Обновление времени
 
-When a model `belongsTo` or `belongsToMany` another model, such as a `Comment` which belongs to a `Post`, it is sometimes helpful to update the parent's timestamp when the child model is updated. For example, when a `Comment` model is updated, you may want to automatically "touch" the `updated_at` timestamp of the owning `Post`. Just add a `touches` property containing the names of the relationships to the child model:
+Когда модель принадлежит к другой посредством `belongsTo` или `belongsToMany` - например, `Comment`, принадлежащий `Post`, то иногда нужно обновить время изменения владельца при обновлении связанной модели. Например, при изменении модели `Comment` Вы можете обновлять поле `updated_at ` её модели `Post`. Просто добавьте свойство `touches`, содержащее имена всех отношений с моделями-потомками:
 
     class Comment extends Model
     {
@@ -772,7 +767,7 @@ When a model `belongsTo` or `belongsToMany` another model, such as a `Comment` w
         ];
     }
 
-Now, when you update a `Comment`, the owning `Post` will have its `updated_at` column updated as well:
+Теперь при обновлении `Comment` владелец `Post` также обновит своё поле `updated_at`:
 
     $comment = Comment::find(1);
 
@@ -780,21 +775,21 @@ Now, when you update a `Comment`, the owning `Post` will have its `updated_at` c
 
     $comment->save();
 
-<a name="deferred-binding"></a>
-## Deferred binding
+<a name="deferred-binding" class="anchor"></a>
+## Отложенное связывание
 
 Deferred bindings allows you to postpone model relationships binding until the master record commits the changes. This is particularly useful if you need to prepare some models (such as file uploads) and associate them to another model that doesn't exist yet.
 
 You can defer any number of **slave** models against a **master** model using a **session key**. When the master record is saved along with the session key, the relationships to slave records are updated automatically for you. Deferred bindings are supported in the back-end [Form behavior](../backend/form) automatically, but you may want to use this feature in other places.
 
-<a name="deferred-session-key"></a>
+<a name="deferred-session-key" class="anchor"></a>
 ### Generating a session key
 
 The session key is required for deferred bindings. You can think of a session key as of a transaction identifier. The same session key should be used for binding/unbinding relationships and saving the master model. You can generate the session key with PHP `uniqid()` function. Note that the [form helper](../cms/markup#forms) generates a hidden field containing the session key automatically.
 
     $sessionKey = uniqid('session_key', true);
 
-<a name="defer-binding"></a>
+<a name="defer-binding" class="anchor"></a>
 ### Defer a relation binding
 
 The comment in the next example will not be added to the post unless the post is saved.
@@ -808,7 +803,7 @@ The comment in the next example will not be added to the post unless the post is
 
 > **Note**: the `$post` object has not been saved but the relationship will be created if the saving happens.
 
-<a name="defer-unbinding"></a>
+<a name="defer-unbinding" class="anchor"></a>
 ### Defer a relation unbinding
 
 The comment in the next example will not be deleted unless the post is saved.
@@ -817,21 +812,21 @@ The comment in the next example will not be deleted unless the post is saved.
     $post = Post::find(1);
     $post->comments()->delete($comment, $sessionKey);
 
-<a name="list-all-bindings"></a>
+<a name="list-all-bindings" class="anchor"></a>
 ### List all bindings
 
 Use the `withDeferred()` method of a relation to load all records, including deferred. The results will include existing relations as well.
 
     $post->comments()->withDeferred($sessionKey)->get();
 
-<a name="cancel-all-bindings"></a>
+<a name="cancel-all-bindings" class="anchor"></a>
 ### Cancel all bindings
 
 It's a good idea to cancel deferred binding and delete the slave objects rather than leaving them as orphans.
 
     $post->cancelDeferred($sessionKey);
 
-<a name="commit-all-bindings"></a>
+<a name="commit-all-bindings" class="anchor"></a>
 ### Commit all bindings
 
 You can commit (bind or unbind) all deferred bindings when you save the master model by providing the session key with the second argument of the `save()` method.
@@ -844,14 +839,14 @@ The same approach works with the model's `create()` method:
 
     $post = Post::create(['title' => 'First blog post'], $sessionKey);
 
-<a name="lazily-commit-bindings"></a>
+<a name="lazily-commit-bindings" class="anchor"></a>
 ### Lazily commit bindings
 
 If you are unable to supply the `$sessionKey` when saving, you can commit the bindings at any time using the the next code:
 
     $post->commitDeferred($sessionKey);
 
-<a name="cleanup-bindings"></a>
+<a name="cleanup-bindings" class="anchor"></a>
 ### Clean up orphaned bindings
 
 Destroys all bindings that have not been committed and are older than 1 day:
