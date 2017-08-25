@@ -1,56 +1,56 @@
-# Model Serialization
+# Сериализация
 
-- [Introduction](#introduction)
-- [Basic usage](#basic-usage)
-- [Hiding attributes from JSON](#hiding-attributes-from-json)
-- [Appending values to JSON](#appending-values-to-json)
+- [Введение](#introduction)
+- [Основы использования](#basic-usage)
+- [Скрытие атрибутов из JSON](#hiding-attributes-from-json)
+- [Добавление атрибутов в JSON](#appending-values-to-json)
 
-<a name="introduction"></a>
-## Introduction
+<a name="introduction" class="anchor"></a>
+## Введение
 
-When building JSON APIs, you will often need to convert your models and relationships to arrays or JSON. Models includes convenient methods for making these conversions, as well as controlling which attributes are included in your serializations.
+При построении JSON API очень часто требуется преобразовать модель и отношения в массив или JSON. Октябрь обладает как удобным механизмом для подобных конвертаций, так и инструментами для контроля над отдельными атрибутами при сериализации.
 
-<a name="basic-usage"></a>
-## Basic usage
+<a name="basic-usage" class="anchor"></a>
+## Основы использования
 
-#### Converting a model to an array
+#### Преобразование модели в массив
 
-To convert a model and its loaded [relationships](relations) to an array, you may use the `toArray` method. This method is recursive, so all attributes and all relations (including the relations of relations) will be converted to arrays:
+Используйте метод `toArray`, чтобы преобразовать модель и соответствующие ей [связи](./database-relations) в массив. Этот метод рекурсивный, так что все атрибуты и все отношения (включая отношения отношений) так же будут преобразованы в массивы:
 
     $user = User::with('roles')->first();
 
     return $user->toArray();
 
-You may also convert [collections](collections) to arrays:
+Также можно преобразовывать в массивы и [коллекции](./database-collections):
 
     $users = User::all();
 
     return $users->toArray();
 
-#### Converting a model to JSON
+#### Преобразование модели в JSON
 
-To convert a model to JSON, you may use the `toJson` method. Like `toArray`, the `toJson` method is recursive, so all attributes and relations will be converted to JSON:
+Для преобразования модели в JSON Вы можете использовать метод `toJson`. Как и `toArray`, метод `toJson` также является рекурсивным, поэтому все атрибуты и отношения так же будут преобразованы в JSON:
 
     $user = User::find(1);
 
     return $user->toJson();
 
-Alternatively, you may cast a model or collection to a string, which will automatically call the `toJson` method:
+Как вариант, можно привести модель или коллекцию к строке, что автоматически вызовет метод `toJson`:
 
     $user = User::find(1);
 
     return (string) $user;
 
-Since models and collections are converted to JSON when cast to a string, you can return Model objects directly from your application's routes, AJAX handlers or controllers:
+Т.к. модели и коллекции преобразуются в JSON при приведении к строке, Вы можете возвращать объекты модели напрямую из маршрутов и контроллеров:
 
     Route::get('users', function () {
         return User::all();
     });
 
-<a name="hiding-attributes-from-json"></a>
-## Hiding attributes from JSON
+<a name="hiding-attributes-from-json" class="anchor"></a>
+## Скрытие атрибутов из JSON
 
-Sometimes you may wish to limit the attributes, such as passwords, that are included in your model's array or JSON representation. To do so, add a `$hidden` property definition to your model:
+Иногда Вам может потребоваться ограничения видимости атрибутов (например, пароля) при конвертации в массив или JSON представление. Для реализации этого функционала используйте свойство `$hidden` в своей модели:
 
     <?php namespace Acme\Blog\Models;
 
@@ -66,7 +66,7 @@ Sometimes you may wish to limit the attributes, such as passwords, that are incl
         protected $hidden = ['password'];
     }
 
-Alternatively, you may use the `$visible` property to define a white-list of attributes that should be included in your model's array and JSON representation:
+В качестве альтернативного варианта, можно использовать атрибут `$visible` и определить «белый» список разрешенных полей и отношений при конвертации в JSON:
 
     class User extends Model
     {
@@ -78,10 +78,10 @@ Alternatively, you may use the `$visible` property to define a white-list of att
         protected $visible = ['first_name', 'last_name'];
     }
 
-<a name="appending-values-to-json"></a>
-## Appending values to JSON
+<a name="appending-values-to-json" class="anchor"></a>
+## Добавление атрибутов в JSON
 
-Occasionally, you may need to add array attributes that do not have a corresponding column in your database. To do so, first define an [accessor](../database/mutators) for the value:
+Бывают ситуации, когда при экспорте Вам может понадобиться добавить атрибуты, соответствующих полей для которых в БД нет. Чтобы сделать это, для начала, определите для него [аксессор](./database-mutators):
 
     class User extends Model
     {
@@ -96,7 +96,7 @@ Occasionally, you may need to add array attributes that do not have a correspond
         }
     }
 
-Once you have created the accessor, add the attribute name to the `appends` property on the model:
+После того, как такой метод создан, добавьте имя атрибута в свойство `appends`:
 
     class User extends Model
     {
@@ -108,4 +108,4 @@ Once you have created the accessor, add the attribute name to the `appends` prop
         protected $appends = ['is_admin'];
     }
 
-Once the attribute has been added to the `appends` list, it will be included in both the model's array and JSON forms. Attributes in the `appends` array will also respect the `visible` and `hidden` settings configured on the model.
+После того как атрибут добавлен в массив `appends`, он будет доступен как при конвертации в массив так и JSON. К этим атрибутам также относятся правила, заданные в `visible` и `hidden` массивах.
