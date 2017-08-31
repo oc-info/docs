@@ -1,27 +1,31 @@
-# Database structure and seeding
+# Структура базы данных и начальные данные
 
-- [Introduction](#introduction)
-- [Migration structure](#migration-structure)
-    - [Creating tables](#creating-tables)
-    - [Renaming / dropping tables](#renaming-and-dropping-tables)
-    - [Creating columns](#creating-columns)
-    - [Modifying columns](#modifying-columns)
-    - [Dropping columns](#dropping-columns)
-    - [Creating indexes](#creating-indexes)
-    - [Dropping indexes](#dropping-indexes)
-    - [Foreign key constraints](#foreign-key-constraints)
-- [Seeder structure](#seeder-structure)
-    - [Calling additional seeders](#calling-additional-seeders)
+- [Введение](#introduction)
+- [Структура миграции (Migration Structure)](#migration-structure)
+    - [Создание таблиц (Creating Tables)](#creating-tables)
+    - [Переименование/удаление таблиц (Renaming / Dropping Tables)](#renaming-and-dropping-tables)
+    - [Создание столбцов (Creating Columns)](#creating-columns)
+    - [Изменение столбцов (Modifying Columns)](#modifying-columns)
+    - [Удаление столбцов (Dropping Columns)](#dropping-columns)
+    - [Создание индексов (Creating Indexes)](#creating-indexes)
+    - [Удаление индексов (Dropping Indexes)](#dropping-indexes)
+    - [Ограничения внешнего ключа (Foreign Key Constraints)](#foreign-key-constraints)
+- [Структура начальных данных (Seeder structure)](#seeder-structure)
+    - [Вызов дополнительных наполнителей](#calling-additional-seeders)
+    
 
-<a name="introduction"></a>
-## Introduction
+    
 
-Migrations and seed files allow you to build, modify and populate database tables. They are primarily used by a [plugin update file](../plugins/updates) and are paired with the version history of a plugin. All classes are stored in the `updates` directory of a plugin. Migrations should tell a story about your database history and this story can be played both forwards and backwards to build up and tear down the tables.
 
-<a name="migration-structure"></a>
-## Migration structure
+<a name="introduction" class="anchor></a>
+## Введение
 
-A migration file should define a class that extends the `October\Rain\Database\Updates\Migration` class and contains two methods: `up` and `down`. The `up` method is used to add new tables, columns, or indexes to your database, while the `down` method should simply reverse the operations performed by the `up` method. Within both of these methods you may use the [schema builder](#creating-tables) to expressively create and modify tables. For example, let's look at a sample migration that creates a `october_blog_posts` table:
+Миграции и начальные данные позволяют Вам изменять и заполнять таблицы в БД при помощи файла `version.yaml`, который содержит в себе информацию о версиях плагина и находится в его папке в подпапке **updates**. Миграции должны описывать историю изменений базы данных, и эта история может быть воспроизведена как вперед, так и назад, чтобы создавать и удалять таблицы.
+
+<a name="migration-structure" class="anchor></a>
+## Структура миграции (Migration Structure)
+
+Файл с миграцией должен содержать в себе класс, который является наследником класса `October\Rain\Database\Updates\Migration`, и должен содержать два публичных метода: `up()` и `down()`. Имя класса должно совпадать с именем файла. Пример:
 
     <?php namespace Acme\Blog\Updates;
 
@@ -52,20 +56,20 @@ A migration file should define a class that extends the `October\Rain\Database\U
         }
     }
 
-<a name="creating-tables"></a>
-### Creating tables
+<a name="creating-tables" class="anchor></a>
+### Создание таблиц (Creating Tables)
 
-To create a new database table, use the `create` method on the `Schema` facade. The `create` method accepts two arguments. The first is the name of the table, while the second is a `Closure` which receives an object used to define the new table:
+Используйте метод `create` фасада `Schema`, чтобы создать новую таблицу. Метода принимает два аргумента: название таблицы и `Closure`:
 
     Schema::create('users', function ($table) {
         $table->increments('id');
     });
 
-Of course, when creating the table, you may use any of the schema builder's [column methods](#creating-columns) to define the table's columns.
+Разумеется, что при создании таблицы Вы можете использовать любой из [методов](#creating-columns) для определения столбцов таблицы.
 
-#### Checking for table / column existence
+#### Проверка существование таблицы / столбца
 
-You may easily check for the existence of a table or column using the `hasTable` and `hasColumn` methods:
+Вы можете легко проверить существование таблицы или столбца при помощи методов `hasTable` и `hasColumn`:
 
     if (Schema::hasTable('users')) {
         //
@@ -75,15 +79,15 @@ You may easily check for the existence of a table or column using the `hasTable`
         //
     }
 
-#### Connection & storage engine
+#### Подключение и Движок Хранилища (Connection & Storage Engine)
 
-If you want to perform a schema operation on a database connection that is not your default connection, use the `connection` method:
+Если требуется использовать подключение, отличное от дефолтного, используйте метод `connection`:
 
     Schema::connection('foo')->create('users', function ($table) {
         $table->increments('id');
     });
 
-To set the storage engine for a table, set the `engine` property on the schema builder:
+Для установки движка таблицы, задайте свойство `engine`:
 
     Schema::create('users', function ($table) {
         $table->engine = 'InnoDB';
@@ -91,33 +95,33 @@ To set the storage engine for a table, set the `engine` property on the schema b
         $table->increments('id');
     });
 
-<a name="renaming-and-dropping-tables"></a>
-### Renaming / dropping tables
+<a name="renaming-and-dropping-tables" class="anchor></a>
+### Переименование/удаление таблиц (Renaming / Dropping Tables)
 
-To rename an existing database table, use the `rename` method:
+Используйте метод `rename`, чтобы переименовать существующую таблицу:
 
     Schema::rename($from, $to);
 
-To drop an existing table, you may use the `drop` or `dropIfExists` methods:
+Используйте метод `drop` или `dropIfExists`, чтобы удалить существующую таблицу:
 
     Schema::drop('users');
 
     Schema::dropIfExists('users');
 
-<a name="creating-columns"></a>
-### Creating columns
+<a name="creating-columns" class="anchor></a>
+### Создание столбцов (Creating Columns)
 
-To update an existing table, we will use the `table` method on the `Schema` facade. Like the `create` method, the `table` method accepts two arguments, the name of the table and a `Closure` that receives an object we can use to add columns to the table:
+Для изменения существующей таблицы используйте метод `table` фасада `Schema`. Подобно методу `create` метод `table` принимает два аргумента: имя таблицы и замыкание, которое получает в качестве аргумента объект. Добавление столбца в таблицу:
 
     Schema::table('users', function ($table) {
         $table->string('email');
     });
 
-#### Available Column Types
+#### Доступные типы столбцов (Available Column Types)
 
-Of course, the schema builder contains a variety of column types that you may use when building your tables:
+Перечень доступных типов в классе конструкторе схемы:
 
-Command  | Description
+Команда  | Описание
 ------------- | -------------
 `$table->bigIncrements('id');`  |  Incrementing ID (primary key) using a "UNSIGNED BIG INTEGER" equivalent.
 `$table->bigInteger('votes');`  |  BIGINT equivalent for the database.
@@ -150,17 +154,17 @@ Command  | Description
 `$table->timestamp('added_on');`  |  TIMESTAMP equivalent for the database.
 `$table->timestamps();`  |  Adds `created_at` and `updated_at` columns.
 
-#### Column modifiers
+#### Модификация столбцов (Column Modifiers)
 
-In addition to the column types listed above, there are several other column "modifiers" which you may use while adding the column. For example, to make the column "nullable", you may use the `nullable` method:
+В дополнение к типам, перечисленным выше, доступны модификаторы столбцов, которые можно использовать при добавлении столбца. Добавим столбцу возможность принимать значения `NULL`:
 
     Schema::table('users', function ($table) {
         $table->string('email')->nullable();
     });
 
-Below is a list of all the available column modifiers. This list does not include the [index modifiers](#creating-indexes):
+Ниже приведен список доступных модификаторов. Список не включает индексные модификаторы [index modifiers](#creating-indexes):
 
-Modifier  | Description
+Модификатор  | Описание
 ------------- | -------------
 `->nullable()`  |  Allow NULL values to be inserted into the column
 `->default($value)`  |  Specify a "default" value for the column
@@ -168,90 +172,90 @@ Modifier  | Description
 `->first()`  |  Place the column "first" in the table (MySQL Only)
 `->after('column')`  |  Place the column "after" another column (MySQL Only)
 
-<a name="modifying-columns"></a>
-### Modifying columns
+<a name="modifying-columns" class="anchor></a>
+### Изменение столбцов (Modifying Columns)
 
-The `change` method allows you to modify an existing column to a new type, or modify the column's attributes. For example, you may wish to increase the size of a string column. To see the `change` method in action, let's increase the size of the `name` column from 25 to 50:
+Используйте метод `change`, чтобы изменить тип существующего столбца или его атрибуты. Например, увеличим размер `name` с 25 до 50:
 
     Schema::table('users', function ($table) {
         $table->string('name', 50)->change();
     });
 
-We could also modify a column to be nullable:
+Также разрешим ячейке принимать значение `NULL`:
 
     Schema::table('users', function ($table) {
         $table->string('name', 50)->nullable()->change();
     });
 
-<a name="renaming-columns"></a>
-#### Renaming columns
+<a name="renaming-columns" class="anchor></a>
+#### Переименование столбцов (Renaming Columns)
 
-To rename a column, you may use the `renameColumn` method on the Schema builder:
+Используйте метод `renameColumn`, чтобы переименовать столбец:
 
     Schema::table('users', function ($table) {
         $table->renameColumn('from', 'to');
     });
 
-> **Note:** Renaming columns in a table with a `enum` column is not currently supported.
+> **Примечание:** Переименование столбцов типа `enum` на текущий момент не поддерживается.
 
-<a name="dropping-columns"></a>
-### Dropping columns
+<a name="dropping-columns" class="anchor></a>
+### Удаление столбцов (Dropping Columns)
 
-To drop a column, use the `dropColumn` method on the Schema builder:
+Используйте метод `dropColumn`, чтобы удалить столбец:
 
     Schema::table('users', function ($table) {
         $table->dropColumn('votes');
     });
 
-You may drop multiple columns from a table by passing an array of column names to the `dropColumn` method:
+Вы также можете удалить сразу несколько столбцов:
 
     Schema::table('users', function ($table) {
         $table->dropColumn(['votes', 'avatar', 'location']);
     });
 
-<a name="creating-indexes"></a>
-### Creating indexes
+<a name="creating-indexes" class="anchor></a>
+### Создание индексов (Creating Indexes)
 
-The schema builder supports several types of indexes. First, let's look at an example that specifies a column's values should be unique. To create the index, we can simply chain the `unique` method onto the column definition:
+Используйте метод `unique`, чтобы создать индексы:
 
     $table->string('email')->unique();
 
-Alternatively, you may create the index after defining the column. For example:
+Создание индекса для существующего столбца:
 
     $table->unique('email');
 
-You may even pass an array of columns to an index method to create a compound index:
+Индекс на основе нескольких столбцов:
 
     $table->index(['account_id', 'created_at']);
 
-In most cases you should specify a name for the index manually as the second argument, to avoid the system automatically generating one that is too long:
+October автоматически генерирует имя индекса, но можно указать его самому в качестве второго параметра:
 
     $table->index(['account_id', 'created_at'], 'account_created');
 
-#### Available index types
+#### Доступные типа индексов (Available Index Types)
 
-Command  | Description
+Команда  | Описание
 ------------- | -------------
 `$table->primary('id');`  |  Add a primary key.
 `$table->primary(['first', 'last']);`  |  Add composite keys.
 `$table->unique('email');`  |  Add a unique index.
 `$table->index('state');`  |  Add a basic index.
 
-<a name="dropping-indexes"></a>
-### Dropping indexes
+<a name="dropping-indexes" class="anchor></a>
+### Удаление индексов (Dropping Indexes)
 
-To drop an index, you must specify the index's name. If no name was specified manually, the system will automatically generate one, simply concatenate the table name, the name of the indexed column, and the index type. Here are some examples:
+Для удаление индекса нужно указать его имя. По умолчанию, система автоматически создает имя, соединяя название таблицы, столбца и тип индекса. Примеры:
 
-Command  | Description
+Команда  | Описание
 ------------- | -------------
-`$table->dropPrimary('users_id_primary');`  |  Drop a primary key from the "users" table.
-`$table->dropUnique('users_email_unique');`  |  Drop a unique index from the "users" table.
-`$table->dropIndex('geo_state_index');`  |  Drop a basic index from the "geo" table.
+`$table->dropPrimary('users_id_primary');`  |  Удалить primary key из таблицы "users".
+`$table->dropUnique('users_email_unique');`  |  Удалить уникальный индекс из таблицы "users".
+`$table->dropIndex('geo_state_index');`  |  Удалить обычный индекс из таблицы "geo".
 
-<a name="foreign-key-constraints"></a>
-### Foreign key constraints
+<a name="foreign-key-constraints" class="anchor></a>
+### Ограничения внешнего ключа (Foreign Key Constraints)
 
-There is also support for creating foreign key constraints, which are used to force referential integrity at the database level. For example, let's define a `user_id` column on the `posts` table that references the `id` column on a `users` table:
+October CMS поддерживает создание внешних ключей, которые служат для обеспечения целостности данных на уровне БД. Например, определим столбец `user_id` в таблице `posts`, который ссылается на столбец `id` таблицы `users`:
 
     Schema::table('posts', function ($table) {
         $table->integer('user_id')->unsigned();
@@ -259,27 +263,28 @@ There is also support for creating foreign key constraints, which are used to fo
         $table->foreign('user_id')->references('id')->on('users');
     });
 
-As before, you may specify a name for the constraint manually by passing a second argument to the `foreign` method:
+
+Вы можете указать имя для ограничения вручную, передав второй аргумент методу `foreign`:
 
     $table->foreign('user_id', 'user_foreign')
         ->references('id')
         ->on('users');
 
-You may also specify the desired action for the "on delete" and "on update" properties of the constraint:
+Вы также можете указать желаемое действие для свойств "on delete" и "on update":
 
     $table->foreign('user_id')
           ->references('id')
           ->on('users')
           ->onDelete('cascade');
 
-To drop a foreign key, you may use the `dropForeign` method. Foreign key constraints use the same naming convention as indexes. So, if one is not specified manually, we will concatenate the table name and the columns in the constraint then suffix the name with "_foreign":
+Используйте метод `dropForeign`, чтобы удалить внешний ключ. Название внешнего ключа формируется аналогично названию индексов. Пример:
 
     $table->dropForeign('posts_user_id_foreign');
 
-<a name="seeder-structure"></a>
-## Seeder structure
+<a name="seeder-structure" class="anchor></a>
+## Структура начальных данных (Seeder structure)
 
-Like migration files, a seeder class only contains one method by default: `run`and should extend the `Seeder` class. The `run` method is called when the update process is executed. Within this method, you may insert data into your database however you wish. You may use the [query builder](../database/query) to manually insert data or you may use your [model classes](../database/model). In the example below, we'll create a new user using the `User` model inside the `run` method:
+По умолчанию класс-наполнитель содержит только один метод: `run` и должен расширять класс `Seeder`. Метод `run` вызывается при запуске обновления. В методе `run` Вы можете вставлять произвольные данные в БД любым удобным способом. Вы можете использовать [конструктор запросов](./database-query) для ручной вставки или использовать [модель](./database-model). Пример:
 
     <?php namespace Acme\Users\Updates;
 
@@ -299,24 +304,19 @@ Like migration files, a seeder class only contains one method by default: `run`a
                 'last_name'             => 'Person',
                 'is_activated'          => true
             ]);
+            
+            $user = Db::table('users')->create([
+                'email'                 => 'user@user.com',
+                'login'                 => 'user',
+                [...]
+            ]);
         }
     }
 
-Alternatively, the same can be achieved using the `Db::table` [query builder](../database/query) method:
+<a name="calling-additional-seeders" class="anchor></a>
+### Вызов дополнительных наполнителей
 
-    public function run()
-    {
-        $user = Db::table('users')->create([
-            'email'                 => 'user@user.com',
-            'login'                 => 'user',
-            [...]
-        ]);
-    }
-
-<a name="calling-additional-seeders"></a>
-### Calling additional seeders
-
-Within the `DatabaseSeeder` class, you may use the `call` method to execute additional seed classes. Using the `call` method allows you to break up your database seeding into multiple files so that no single seeder class becomes overwhelmingly large. Simply pass the name of the seeder class you wish to run:
+В классе `DatabaseSeeder` можно использовать метод `call` для запуска дополнительных классов-наполнителей.м Просто передай методу желаемый класс-наполнитель для его запуска:
 
     /**
      * Run the database seeds.
