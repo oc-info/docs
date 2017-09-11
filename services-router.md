@@ -1,22 +1,20 @@
-# Router service
+# Роутинг (маршрутизация)
 
-- [Basic routing](#basic-routing)
-- [Route parameters](#route-parameters)
-    - [Required parameters](#required-parameters)
-    - [Optional parameters](#parameters-optional-parameters)
-    - [Regular expression constraints](#parameters-regular-expression-constraints)
-- [Named routes](#named-routes)
-- [Route groups](#route-groups)
-    - [Sub-domain routing](#route-group-sub-domain-routing)
-    - [Route prefixes](#route-group-prefixes)
-- [Throwing 404 errors](#throwing-404-errors)
+- [Простейшая маршрутизация](#basic-routing)
+- [Параметры роутов](#route-parameters)
+    - [Обязательные параметры](#required-parameters)
+    - [Необязательные параметры](#parameters-optional-parameters)
+    - [Параметры с регулярными выражениями](#parameters-regular-expression-constraints)
+- [Именованные роуты](#named-routes)
+- [Группы роутов](#route-groups)
+    - [Доменная маршрутизация](#route-group-sub-domain-routing)
+    - [Префикс пути](#route-group-prefixes)
+- [Ошибки 404](#throwing-404-errors)
 
-<a name="basic-routing"></a>
-## Basic routing
+<a href="basic-routing" name="basic-routing" class="anchor"></a>
+## Простейшая маршрутизация
 
-While routing is handled automatically for the [backend controllers](../backend/controllers-views-ajax) and CMS pages define their own URL routes in their [page configuration](../cms/pages#configuration), the router service is useful primarily for defining fixed APIs and end points. 
-
-You can define these routes by creating a file named **routes.php** in a same directory as the [plugin registration file](../plugin/registration). The most basic routes simply accept a URI and a `Closure`:
+Вы можете указать произвольные маршруты в файле **routes.php** в папке с плагином. Простейший роут состоит из URI (урла, пути) и функции-замыкания (она же коллбек):
 
     Route::get('/', function () {
         return 'Hello World';
@@ -34,52 +32,48 @@ You can define these routes by creating a file named **routes.php** in a same di
         //
     });
 
-#### Registering a route for multiple verbs
-
-Sometimes you may need to register a route that responds to multiple HTTP verbs. You may do so using the `match` method on the `Route` facade:
+#### Регистрация роута для нескольких методов
 
     Route::match(['get', 'post'], '/', function () {
         return 'Hello World';
     });
 
-You may even register a route that responds to all HTTP verbs using the `any` method:
+Регистрация роута для любого типа HTTP-запроса:
 
     Route::any('foo', function () {
         return 'Hello World';
     });
 
-#### Generating URLs to routes
+#### Генерация URL
 
-You may generate URLs to your routes using the `Url` facade:
+Используйте метод `to`, чтобы сгенерировать URL:
 
     $url = Url::to('foo');
 
-<a name="route-parameters"></a>
-## Route parameters
+<a href="route-parameters" name="route-parameters" class="anchor"></a>
+## Параметры роутов
 
-<a name="required-parameters"></a>
-### Required parameters
+<a href="required-parameters" name="required-parameters" class="anchor"></a>
+### Обязательные параметры
 
-Sometimes you will need to capture segments of the URI within your route, for example, you may need to capture a user's ID from the URL. You may do so by defining route parameters:
+Вы можете использовать параметры, чтобы передать произвольное значение. Например `id` пользователя:
 
     Route::get('user/{id}', function ($id) {
         return 'User '.$id;
     });
 
-You may define as many route parameters as required by your route:
+Вы можете использовать столько параметров, сколько нужно:
 
     Route::get('posts/{post}/comments/{comment}', function ($postId, $commentId) {
         //
     });
 
-Route parameters are always encased within singular *curly brackets*. The parameters will be passed into your route's `Closure` when the route is executed.
+> **Примечание:** Используйте `_` в названиях параметров.
 
-> **Note:** Route parameters cannot contain the `-` character. Use an underscore (`_`) instead.
+<a href="parameters-optional-parameters" name="parameters-optional-parameters" class="anchor"></a>
+### Необязательные параметры
 
-<a name="parameters-optional-parameters"></a>
-### Optional parameters
-
-Occasionally you may need to specify a route parameter, but make the presence of that route parameter optional. You may do so by placing a `?` mark after the parameter name:
+Вы можете использоватьзнак вопроса `?`, чтобы сделать параметр необязательным. Пример:
 
     Route::get('user/{name?}', function ($name = null) {
         return $name;
@@ -89,10 +83,10 @@ Occasionally you may need to specify a route parameter, but make the presence of
         return $name;
     });
 
-<a name="parameters-regular-expression-constraints"></a>
-### Regular expression constraints
+<a href="parameters-regular-expression-constraints" name="parameters-regular-expression-constraints" class="anchor"></a>
+### Параметры с регулярными выражениями
 
-You may constrain the format of your route parameters using the `where` method on a route instance. The `where` method accepts the name of the parameter and a regular expression defining how the parameter should be constrained:
+Вы можете использовать метод `where`, чтобы наложить ограничения на параметр:
 
     Route::get('user/{name}', function ($name) {
         //
@@ -106,18 +100,18 @@ You may constrain the format of your route parameters using the `where` method o
         //
     })->where(['id' => '[0-9]+', 'name' => '[a-z]+']);
 
-<a name="named-routes"></a>
-## Named routes
+<a href="named-routes" name="named-routes" class="anchor"></a>
+## Именованные роуты
 
-Named routes allow you to conveniently generate URLs or redirects for a specific route. You may specify a name for a route using the `as` array key when defining the route:
+Присваивая имена роутам вы можете сделать обращение к ним (при генерации URL во вьюхах (views) или переадресациях) более удобным. Вы можете задать имя роуту таким образом:
 
     Route::get('user/profile', ['as' => 'profile', function () {
         //
     }]);
 
-#### Route groups & named routes
+#### Группы роутов и именованные роуты
 
-If you are using [route groups](#route-groups), you may specify an `as` keyword in the route group attribute array, allowing you to set a common route name prefix for all routes within the group:
+Вы можете использовать `as`, чтобы задать префикс для всех маршрутов в группе:
 
     Route::group(['as' => 'admin::'], function () {
         Route::get('dashboard', ['as' => 'dashboard', function () {
@@ -125,15 +119,15 @@ If you are using [route groups](#route-groups), you may specify an `as` keyword 
         }]);
     });
 
-#### Generating URLs to named routes
+#### Генерация URL
 
-Once you have assigned a name to a given route, you may use the route's name when generating URLs or redirects via the `Url::route` method:
+Пример редиректа:
 
     $url = Url::route('profile');
 
     $redirect = Response::redirect()->route('profile');
 
-If the route defines parameters, you may pass the parameters as the second argument to the `route` method. The given parameters will automatically be inserted into the URL:
+Пример генерации:
 
     Route::get('user/{id}/profile', ['as' => 'profile', function ($id) {
         //
@@ -141,15 +135,28 @@ If the route defines parameters, you may pass the parameters as the second argum
 
     $url = Url::route('profile', ['id' => 1]);
 
-<a name="route-groups"></a>
-## Route groups
+<a href="route-groups" name="route-groups" class="anchor"></a>
+## Группы роутов
 
-Route groups allow you to share route attributes across a large number of routes without needing to define those attributes on each individual route. Shared attributes are specified in an array format as the first parameter to the `Route::group` method.
+Вы можете сгруппировать маршруты, чтобы применить различны фильтры сразу к нескольким роутам:
 
-<a name="route-group-sub-domain-routing"></a>
-### Sub-domain routing
+    Route::group(array('before' => 'auth'), function()
+    {
+        Route::get('/', function()
+        {
+            // К этому маршруту будет привязан фильтр auth.
+        });
+    
+        Route::get('user/profile', function()
+        {
+            // К этому маршруту также будет привязан фильтр auth.
+        });
+    });
 
-Route groups may also be used to route wildcard sub-domains. Sub-domains may be assigned route parameters just like route URIs, allowing you to capture a portion of the sub-domain for usage in your route or controller. The sub-domain may be specified using the `domain` key on the group attribute array:
+<a href="route-group-sub-domain-routing" name="route-group-sub-domain-routing" class="anchor"></a>
+### Доменная маршрутизация
+
+В OctoberCMS роуты способны работать и с поддоменами по их маске и передавать в Ваш обработчик параметры из шаблона.
 
     Route::group(['domain' => '{account}.example.com'], function () {
         Route::get('user/{id}', function ($account, $id) {
@@ -157,10 +164,11 @@ Route groups may also be used to route wildcard sub-domains. Sub-domains may be 
         });
     });
 
-<a name="route-group-prefixes"></a>
-### Route prefixes
+<a href="route-group-prefixes" name="route-group-prefixes" class="anchor"></a>
+### Префикс пути
 
-The `prefix` group array attribute may be used to prefix each route in the group with a given URI. For example, you may want to prefix all route URIs within the group with `admin`:
+
+Группа роутов может быть зарегистрирована с одним префиксом без его явного указания с помощью ключа prefix в параметрах группы. Пример:
 
     Route::group(['prefix' => 'admin'], function () {
         Route::get('users', function () {
@@ -168,7 +176,7 @@ The `prefix` group array attribute may be used to prefix each route in the group
         });
     });
 
-You may also use the `prefix` parameter to specify common parameters for your grouped routes:
+Вы также можете использовать параметры:
 
     Route::group(['prefix' => 'accounts/{account_id}'], function () {
         Route::get('detail', function ($account_id) {
@@ -176,13 +184,13 @@ You may also use the `prefix` parameter to specify common parameters for your gr
         });
     });
 
-<a name="throwing-404-errors"></a>
-## Throwing 404 errors
+<a href="throwing-404-errors" name="throwing-404-errors" class="anchor"></a>
+## Ошибки 404
 
-There are two ways to manually trigger a 404 error from a route. First, you may use the `abort` helper. The `abort` helper simply throws a `Symfony\Component\HttpFoundation\Exception\HttpException` with the specified status code:
+Существует два способа вызвать исключение 404 (Not Found) из маршрута. Первый - методом `abort`:
 
     App::abort(404);
 
-Secondly, you may manually throw an instance of `Symfony\Component\HttpKernel\Exception\NotFoundHttpException`.
+Второй - бросив исключение класса или потомка класса  `Symfony\Component\HttpKernel\Exception\NotFoundHttpException`.
 
-More information on handling 404 exceptions and using custom responses for these errors may be found in the [errors & logging](../services/error-log) section of the documentation.
+Больше информации о том, как обрабатывать исключения 404 и отправлять собственный ответ на такой запрос содержится в разделе об [ошибках](./services-error-log).
