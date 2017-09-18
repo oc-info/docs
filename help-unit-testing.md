@@ -1,16 +1,16 @@
-# Unit testing
+# Юнит тесты
 
-- [Testing plugins](#testing-plugins)
-- [System testing](#testing-system)
+- [Тестирование плагинов](#testing-plugins)
+- [Тестирование системы](#testing-system)
 
-<a name="testing-plugins"></a>
-## Testing plugins
+<a href="testing-plugins" name="testing-plugins" class="anchor"></a>
+## Тестирование плагинов
 
-Plugin unit tests can be performed by running `phpunit` in the base plugin directory.
+Вы можете выполнить юнит тесты, запустив `phpunit` из каталога с плагином.
 
-### Creating plugin tests
+### Создание тестов
 
-Plugins can be tested by creating a file called `phpunit.xml` in the base directory with the following content, for example, in a file **/plugins/acme/blog/phpunit.xml**:
+Вы можете протестировать плагины, создав файл `phpunit.xml` в папке с плагином. Пример содержимого файла **/plugins/acme/blog/phpunit.xml**:
 
     <?xml version="1.0" encoding="UTF-8"?>
     <phpunit backupGlobals="false"
@@ -36,7 +36,7 @@ Plugins can be tested by creating a file called `phpunit.xml` in the base direct
         </php>
     </phpunit>
 
-Then a **tests/** directory can be created to contain the test classes. The file structure should mimic the base directory with classes having a `Test` suffix. Using a namespace for the class is also recommended.
+Вы можете создать папку **tests/** с тестовыми классами. Пример:
 
     <?php namespace Acme\Blog\Tests\Models;
 
@@ -52,38 +52,38 @@ Then a **tests/** directory can be created to contain the test classes. The file
         }
     }
 
-The test class should extend the base class `PluginTestCase` and this is a special class that will set up the October database stored in memory, as part of the `setUp()` method. It will also refresh the plugin being testing, along with any of the defined dependencies in the plugin registration file. This is the equivalent of running the following before each test:
+Тестовые классы должны расширять класс `PluginTestCase`, который обновляет БД OctoberCMS, тестируемый плагин и его зависимости при запуске теста. Это эквивалентно выполнению следующих действий перед каждым тестом:
 
     php artisan october:up
     php artisan plugin:refresh Acme.Blog
     [php artisan plugin:refresh <dependency>, ...]
 
-<a name="testing-system"></a>
-## System testing
+<a href="testing-system" name="testing-system" class="anchor"></a>
+## Тестирование системы
 
-To perform unit testing on the core October files, you should download a development copy using composer or cloning the git repo. This will ensure you have the `tests/` directory.
+Вы должны загрузить копию для разработки, используя composer, или клонировать git-репозиторий, чтобы иметь возможность протестировать ядро OctoberCMS. Это обеспечит наличие каталога `tests/`.
 
-### Unit tests
+### Юнит тесты
 
-Unit tests can be performed by running `phpunit` in the root directory or inside `/tests/unit`.
+Юнит тесты могут быть выполнены путем запуска `phpunit` в корневом каталоге или внутри `/tests/unit`.
 
-### Functional tests
+### Функциональные тесты
 
-Functional tests can be performed by running `phpunit` in the `/tests/functional` directory. Ensure the following configuration is met:
+Функциональные тесты могут быть выполнены путем запуска `phpunit` в каталоге `/tests/functional`. Убедитесь, что выполнены следующие настройки:
 
-- Active theme is `demo`
-- Language preference is `en`
+- `demo` - активная тема
+- `en` - активный язык
 
-#### Selenium set up
+#### Установка Selenium
 
-1. Download latest Java SE from http://java.sun.com/ and install
-1. Download a distribution archive of [Selenium Server](http://seleniumhq.org/download/).
-1. Unzip the distribution archive and copy selenium-server-standalone-2.42.2.jar (check the version suffix) to /usr/local/bin, for instance.
-1. Start the Selenium Server server by running `java -jar /usr/local/bin/selenium-server-standalone-2.42.2.jar`.
+1. [Скачайте](http://java.sun.com/) последнюю версию Java SE и установите ее.
+1. Скачайте архив с дистрибутивом [Selenium Server](http://seleniumhq.org/download/).
+1. Разархивируйте файл и скопируйте selenium-server-standalone-2.42.2.jar (укажите нужную версию) в /usr/local/bin.
+1. Запустите Selenium Server при помощи следующей команды: `java -jar /usr/local/bin/selenium-server-standalone-2.42.2.jar`.
 
-#### Selenium configuration
+#### Настройка Selenium
 
-Create a new file `selenium.php` in the root directory, add the following content:
+Создайте файл `selenium.php` в корне проекта и добавьте в него следующее содержимое:
 
     <?php
 

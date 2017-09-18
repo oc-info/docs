@@ -1,3 +1,3 @@
 # Gateway
 
-### Reserved for future use
+### Зарезервировано для будущего использования
