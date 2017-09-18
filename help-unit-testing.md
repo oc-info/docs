@@ -3,7 +3,7 @@
 - [Тестирование плагинов](#testing-plugins)
 - [Тестирование системы](#testing-system)
 
-<a href="testing-plugins" name="testing-plugins" class="anchor"></a>
+<a href="#testing-plugins" name="testing-plugins" class="anchor"></a>
 ## Тестирование плагинов
 
 Вы можете выполнить юнит тесты, запустив `phpunit` из каталога с плагином.
@@ -58,7 +58,7 @@
     php artisan plugin:refresh Acme.Blog
     [php artisan plugin:refresh <dependency>, ...]
 
-<a href="testing-system" name="testing-system" class="anchor"></a>
+<a href="#testing-system" name="testing-system" class="anchor"></a>
 ## Тестирование системы
 
 Вы должны загрузить копию для разработки, используя composer, или клонировать git-репозиторий, чтобы иметь возможность протестировать ядро OctoberCMS. Это обеспечит наличие каталога `tests/`.
