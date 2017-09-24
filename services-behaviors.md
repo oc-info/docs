@@ -1,24 +1,24 @@
-# Behaviors
+# Поведения ( Behaviors )
 
-- [Introduction](#introduction)
-- [Comparison to traits](#compare-traits)
-- [Extending constructors](#constructor-extension)
-- [Usage example](#usage-example)
+- [Введение](#introduction)
+- [Сравнение с трейтами](#compare-traits)
+- [Расширение конструкторов](#constructor-extension)
+- [Примеры](#usage-example)
 
-<a name="introduction"></a>
-## Introduction
+<a href="introduction" name="introduction" class="anchor"></a>
+## Введение
 
-Behaviors add the ability for classes to have *private traits*, also known as Behaviors. These are similar to [native PHP Traits](http://php.net/manual/en/language.oop5.traits.php) except they have some distinct benefits:
+Поведения позволяют классам иметь *приватные трейты* и являются аналогией [native PHP Traits](http://php.net/manual/en/language.oop5.traits.php) за исключением того, что они имеют некоторые преимущества:
 
-1. Behaviors have their own contructor.
-1. Behaviors can have private or protected methods.
-1. Methods and property names can conflict safely.
-1. Classes can be extended with behaviors dynamically.
+1. Поведения имеют собственный конструктор.
+1. Поведения могут иметь приватные (private) и защищенные (protected) методы.
+1. Названия методов и свойств могут безопасно конфликтовать.
+1. Классы могут быть динамически расширены поведением.
 
-<a name="compare-traits"></a>
-## Comparison to traits
+<a href="compare-traits" name="compare-traits" class="anchor"></a>
+## Сравнение с трейтами
 
-Where you might use a PHP trait like this:
+Трейт:
 
     class MyClass
     {
@@ -26,7 +26,7 @@ Where you might use a PHP trait like this:
         use \October\Rain\DeferredBinding;
     }
 
-A behavior is used in a similar fashion:
+Поведение:
 
     class MyClass extends \October\Rain\Extension\Extendable
     {
@@ -36,7 +36,7 @@ A behavior is used in a similar fashion:
         ];
     }
 
-Where you might define a trait like this:
+Трейт:
 
     trait UtilityFunctions
     {
@@ -46,7 +46,7 @@ Where you might define a trait like this:
         }
     }
 
-A behavior is defined like this:
+Поведение:
 
     class UtilityFunctions extends \October\Rain\Extension\ExtensionBase
     {
@@ -63,30 +63,28 @@ A behavior is defined like this:
         }
     }
 
-The extended object is always passed as the first parameter to the Behavior's constructor.
+Расширенный объект всегда передается в качестве первого параметра конструктору.
 
-<a name="constructor-extension"></a>
-## Extending constructors
+<a href="constructor-extension" name="constructor-extension" class="anchor"></a>
+## Расширение конструкторов
 
-Any class that uses the `Extendable` or `ExtendableTrait` can have its constructor extended with the static `extend` method. The argument should pass a closure that will be called as part of the class constructor.
+Классы, которые используют `Extendable` или `ExtendableTrait` могут иметь конструктор, который можно расширить при помощи статического метода `extend`. Аргументом является функция-замыкания:
 
     MyNamespace\Controller::extend(function($controller) {
         //
     });
     
-#### Dynamically declaring properties
+#### Динамическое объявление свойств
 
-Properties can be declared on an extendable object by calling `addDynamicProperty` and passing a property name and value.
+Вы можете задать свойства динамически при помощи метода `addDynamicProperty`. Первый аргумент - название свойства, второй - его значение.
 
     Post::extend(function($model) {
         $model->addDynamicProperty('tagsCache', null);
     });
-    
-> **Note**: Attempting to set undeclared properties through normal means (`$this->foo = 'bar';`) on an object that implements the **October\Rain\Extension\ExtendableTrait** will not work. It won't throw an exception, but it will not autodeclare the property either. `addDynamicProperty` must be called in order to set previously undeclared properties on extendable objects.
 
-#### Dynamically creating methods
+#### Динамическое создание методов
 
-Methods can be created to an extendable object by calling `addDynamicMethod` and passing a method name and callable object, like a `Closure`.
+Вы можете создать методы динамически при помощи метода `addDynamicMethod`.  Первый аргумент - название метода, второй - `Closure`.
 
     Post::extend(function($model) {
         $model->addDynamicProperty('tagsCache', null);
@@ -100,9 +98,9 @@ Methods can be created to an extendable object by calling `addDynamicMethod` and
         });
     });
     
-#### Dynamically implementing a behavior
+#### Динамическая имплементация поведения
 
-This unique ability to extend constructors allows behaviors to be implemented dynamically, for example:
+Эта уникальная возможность позволяет динамически изменять поведение, например:
 
     /**
      * Extend the RainLab.Users controller to include the RelationController behavior too
@@ -116,8 +114,8 @@ This unique ability to extend constructors allows behaviors to be implemented dy
         $controller->addDynamicProperty('relationConfig', '$/myvendor/myplugin/controllers/users/config_relation.yaml');
     });
 
-<a name="usage-example"></a>
-## Usage example
+<a href="usage-example" name="usage-example" class="anchor"></a>
+## Примеры
 
 #### Behavior / Extension class
 
@@ -149,7 +147,7 @@ This unique ability to extend constructors allows behaviors to be implemented dy
         }
     }
 
-#### Extending a class
+#### Расширение класса
 
 This `Controller` class will implement the `FormController` behavior and then the methods will become available (mixed in) to the class. We will override the `otherMethod` method.
 
@@ -171,7 +169,7 @@ This `Controller` class will implement the `FormController` behavior and then th
         }
     }
 
-#### Using the extension
+#### Использование расширения
 
     $controller = new MyNamespace\Controller;
 
@@ -184,13 +182,13 @@ This `Controller` class will implement the `FormController` behavior and then th
     // Prints: You might not see me...
     echo $controller->asExtension('FormController')->otherMethod();
 
-#### Detecting utilized extensions
+#### Обнаружение использованных расширений
 
-To check if an object has been extended with a behavior, you may use the `isClassExtendedWith` method on the object.
+Используйте метод `isClassExtendedWith`, чтобы проверить, был ли объект расширен при помощи поведения:
 
     $controller->isClassExtendedWith('Backend.Behaviors.RelationController');
 
-Below is an example of dynamically extending a `UsersController` of a third-party plugin utilizing this method to avoid preventing other plugins from also extending the afore-mentioned third-party plugin.
+Пример:
 
     UsersController::extend(function($controller) {
 
@@ -214,16 +212,16 @@ Below is an example of dynamically extending a `UsersController` of a third-part
 
     }
 
-### Soft definition
+### Мягкое определение
 
-If a behavior class does not exist, like a trait, a *Class not found* error will be thrown. In some cases you may wish to suppress this error, for conditional implementation if a behavior is present in the system. You can do this by placing an `@` symbol at the beginning of the class name.
+Используйте символ `@`, чтобы избежать ошибки *Class not found*, при использовании поведений:
 
     class User extends \October\Rain\Extension\Extendable
     {
         public $implement = ['@RainLab.Translate.Behaviors.TranslatableModel'];
     }
 
-If the class name `RainLab\Translate\Behaviors\TranslatableModel` does not exist, no error will be thrown. This is the equivalent of the following code:
+Если класс `RainLab\Translate\Behaviors\TranslatableModel` не существует, то ошибка не будет отображаться. Это эквивалентно следующему коду:
 
     class User extends \October\Rain\Extension\Extendable
     {
@@ -239,10 +237,10 @@ If the class name `RainLab\Translate\Behaviors\TranslatableModel` does not exist
         }
     }
 
-### Using Traits instead of base classes
+### Использование трейтов вместо базовых классов
 
-In some cases you may not wish to extend the `ExtensionBase` or `Extendable` classes, due to other needs. So you can use the traits instead, although obviously the behavior methods will not be available to the parent class.
+В некоторых случаях Вы можете не захотеть расширять классы `ExtensionBase` или `Extendable`. В таком случае, Вы можете использовать трейты. Очевидно, что поведения не доступны родительскому классу.
 
-- When using the `ExtensionTrait` the methods from `ExtensionBase` should be applied to the class.
+- При использовании `ExtensionTrait` методы класса` ExtensionBase` должны применяться к классу.
 
-- When using the `ExtendableTrait` the methods from `Extendable` should be applied to the class.
+- При использовании `ExtendableTrait` методы класса `Extendable` должны применяться к классу.
