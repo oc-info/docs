@@ -1,56 +1,56 @@
-# Events
+# События ( Events )
 
-- [Basic usage](#basic-usage)
-- [Subscribing to events](#events-subscribing)
-    - [Where to register listeners](#event-registration)
-    - [Subscribe using priority](#subscribing-priority)
-    - [Halting events](#subscribing-halting)
-    - [Wildcard listeners](#wildcard-listeners)
-- [Firing events](#events-firing)
-    - [Passing arguments by reference](#event-pass-by-reference)
-    - [Queued events](#queued-events)
-- [Using classes as listeners](#using-classes-as-listeners)
-    - [Subscribe to individual methods](#event-class-method)
-    - [Subscribe to entire class](#event-class-subscribe)
-- [Event emitter trait](#event-emitter-trait)
+- [Использование](#basic-usage)
+- [Подписка на события](#events-subscribing)
+    - [Где писать код ?](#event-registration)
+    - [Подписка на событие с приоритетом](#subscribing-priority)
+    - [Прерывание обработки события](#subscribing-halting)
+    - [Обработчики по шаблону (wildcard)](#wildcard-listeners)
+- [Вызов событий ( Firing events )](#events-firing)
+    - [Передача аргументов по ссылке](#event-pass-by-reference)
+    - [Очередь событий](#queued-events)
+- [Использование классов в качестве слушателей](#using-classes-as-listeners)
+    - [Определение метода-подписчика](#event-class-method)
+    - [Определение класса-подписчика](#event-class-subscribe)
+- [Трейт](#event-emitter-trait)
 
-<a name="basic-usage"></a>
-## Basic usage
+<a href="basic-usage" name="basic-usage" class="anchor"></a>
+## Использование
 
-The `Event` class provides a simple observer implementation, allowing you to subscribe and listen for events in your application. For example, you may listen for when a user signs in and update their last login date.
+Класс `Event` содержит простую реализацию концепции Observer ("Наблюдатель"), что позволяет Вам подписываться на уведомления о событиях (listen for events) в вашем приложении. Пример:
 
     Event::listen('auth.login', function($user) {
         $user->last_login = new DateTime;
         $user->save();
     });
 
-This is event made available with the `Event::fire` method which is called as part of the user sign in logic, thereby making the logic extensible.
+Вы можете получить доступ к этому событию при помощи метода `Event::fire`, который позволяет расширить логику Вашего приложения:
 
     Event::fire('auth.login', [$user]);
 
-<a name="events-subscribing"></a>
-## Subscribing to events
+<a href="events-subscribing" name="events-subscribing" class="anchor"></a>
+## Подписка на события
 
-The `Event::listen` method is primarily used to subscribe to events and can be can be done from anywhere within your application code. The first argument is the event name.
+Вы можете использовать метод `Event::listen` в любом месте. Первый аргумент - название события.
 
     Event::listen('acme.blog.myevent', ...);
 
-The second argument can be a closure that specifies what should happen when the event is fired. The closure can accept optional some arguments, provided by [the firing event](#events-firing).
+Второй аргумент - функция-замыкание с [произвольными аргументами](#events-firing).
 
     Event::listen('acme.blog.myevent', function($arg1, $arg2) {
         // Do something
     });
 
-You may also pass a reference to any callable object or a [dedicated event class](#using-classes-as-listeners) and this will be used instead.
+Вы также можете передать ссылку на вызываемый объект или на [класс](#using-classes-as-listeners).
 
     Event::listen('auth.login', [$this, 'LoginHandler']);
 
-> **Note**: The callable method can choose to specify all, some or none of the arguments. Either way the event will not throw any errors unless it specifies too many.
+> **Примечание**: Вы можете указать все аргументы, их часть или ничего. В любом случае событие не будет вызывать никаких ошибок, если их не указано слишком много.
 
-<a name="event-registration"></a>
-### Where to register listeners
+<a href="event-registration" name="event-registration" class="anchor"></a>
+### Где писать код ?
 
-The most common place is the `boot` method of a [Plugin registration file](../plugin/registration#registration-methods).
+Наиболее подходящее место - метод `boot` в [файле регистрации плагина](./plugin/registration#registration-methods).
 
     class Plugin extends PluginBase
     {
@@ -62,18 +62,16 @@ The most common place is the `boot` method of a [Plugin registration file](../pl
         }
     }
 
-Alternatively, plugins can supply a file named **init.php** in the plugin directory that you can use to place event registration logic. For example:
+Вы также можете использовать файл  **init.php** в папке с плагином. Пример:
 
     <?php
 
     Event::listen(...);
 
-Since none of these approaches is inherently "correct", choose an approach you feel comfortable with based on the size of your application.
+<a href="subscribing-priority" name="subscribing-priority" class="anchor"></a>
+### Подписка на событие с приоритетом
 
-<a name="subscribing-priority"></a>
-### Subscribe using priority
-
-You may also specify a priority as the third argument when subscribing to events. Listeners with higher priority will be run first, while listeners that have the same priority will be run in order of subscription.
+При подписке на событие Вы можете указать приоритет. Обработчики с более высоким приоритетом будут вызваны перед теми, чей приоритет ниже, а обработчики с одинаковым приоритетом будут вызываться в порядке их регистрации.
 
     // Run first
     Event::listen('auth.login', function() { ... }, 10);
@@ -81,10 +79,10 @@ You may also specify a priority as the third argument when subscribing to events
     // Run second
     Event::listen('auth.login', function() { ... }, 5);
 
-<a name="subscribing-halting"></a>
-### Halting events
+<a href="subscribing-halting" name="subscribing-halting" class="anchor"></a>
+### Прерывание обработки события
 
-Sometimes you may wish to stop the propagation of an event to other listeners. You may do so using by returning `false` from your listener:
+Иногда Вам может быть нужно пропустить вызовы других обработчиков события. Вы можете сделать это, вернув значение `false`:
 
     Event::listen('auth.login', function($event) {
         // Handle the event
@@ -92,16 +90,16 @@ Sometimes you may wish to stop the propagation of an event to other listeners. Y
         return false;
     });
 
-<a name="wildcard-listeners"></a>
-### Wildcard listeners
+<a href="wildcard-listeners" name="wildcard-listeners" class="anchor"></a>
+### Обработчики по шаблону (wildcard)
 
-When registering an event listener, you may use asterisks to specify wildcard listeners. The following listener will handle all events that begin with `foo.`.
+Вы можете использовать звёздочки (*) при регистрации обработчика для привязки его ко всем подходящим событиям. Пример:
 
     Event::listen('foo.*', function($param) {
         // Handle the event...
     });
 
-You may use the `Event::firing` method to determine exactly which event was fired:
+Используйте метод `Event::firing`, для определения того, какое именно событие из подходящих под `foo.*` поймано:
 
     Event::listen('foo.*', function($param) {
         if (Event::firing() == 'foo.bar') {
@@ -109,43 +107,40 @@ You may use the `Event::firing` method to determine exactly which event was fire
         }
     });
 
-<a name="events-firing"></a>
-## Firing events
+<a href="events-firing" name="events-firing" class="anchor"></a>
+## Вызов событий ( Firing events )
 
-You may use the `Event::fire` method anywhere in your code to make the logic extensible. This means other developers, or even your own internal code, can "hook" to this point of code and inject specific logic. The first argument of should be the event name.
+Вы можете использовать метод `Event::fire` в любом месте вашего кода, чтобы сделать логику расширяемой. Это означает, что другие разработчики или даже Ваш собственный  код могут «подключиться» к этой точке и добавить новую логику. Первый аргумент - название события.
 
     Event::fire('myevent')
 
-It is always a good idea to prefix event names with your plugin namespace code, this will prevent collisions with other plugins.
+Вы можете использовать в качестве префикса пространство имен, чтобы избежать конфликты с другими плагинами.
 
     Event::fire('acme.blog.myevent');
 
-The second argument is an array of values that will be passed as arguments to [the event listener](#events-subscribing) subscribing to it.
+Второй аргумент - произвольный массив данных, которые будут использоваться в качестве аргументов в методе `Event::listen`.
 
     Event::fire('acme.blog.myevent', [$arg1, $arg2]);
 
-The third argument specifies whether the event should be a [halting event](#subscribing-halting), meaning it should halt if a "non null" value is returned. This argument is set to false by default.
+Третий аргумент указывает на то, что [событие должно прерываться](#subscribing-halting), если возвращаемое значение - "non null". По умолчанию этот аргумент имеет значение `false`.
 
     Event::fire('acme.blog.myevent', [...], true);
-
-If the event is halting, the first value returned with be captured.
 
     // Single result, event halted
     $result = Event::fire('acme.blog.myevent', [...], true);
 
-Otherwise it returns a collection of all the responses from all the events in the form of an array.
-
-    // Multiple results, all events fired
+    // Collection of results, all events fired
     $results = Event::fire('acme.blog.myevent', [...]);
 
-<a name="event-pass-by-reference"></a>
-## Passing arguments by reference
+<a href="event-pass-by-reference" name="event-pass-by-reference" class="anchor"></a>
+## Передача аргументов по ссылке
 
-When processing or filtering over a value passed to an event, you may prefix the variable with `&` to pass it by reference. This allows multiple listeners to manipulate the result and pass it to the next one.
+Вы можете передать переменную по ссылке, чтобы изменить ее содержимое:
 
+    // $content = '111'
     Event::fire('cms.processContent', [&$content]);
 
-When listening for the event, the argument also needs to be declared with the `&` symbol in the closure definition. In the example below, the `$content` variable will have "AB" appended to the result.
+Пример:
 
     Event::listen('cms.processContent', function (&$content) {
         $content = $content . 'A';
@@ -154,31 +149,33 @@ When listening for the event, the argument also needs to be declared with the `&
     Event::listen('cms.processContent', function (&$content) {
         $content = $content . 'B';
     });
+    
+В итоге: `$content = '111AB'`.
 
-<a name="queued-events"></a>
-### Queued events
+<a href="queued-events" name="queued-events" class="anchor"></a>
+### Очередь событий
 
-Firing events can be deferred in [conjunction with queues](../services/queues). Use the `Event::queue` method to "queue" the event for firing but not fire it immediately.
+Вы можете использовать метод `Event::queue`, чтобы отложить выполнение события и добавить его в [очередь](./services/queues).
 
     Event::queue('foo', [$user]);
 
-You may use the `Event::flush` method to flush all queued events.
+Используйте метод `Event::flush`, чтобы удалить все события из очереди.
 
     Event::flush('foo');
 
-<a name="using-classes-as-listeners"></a>
-## Using classes as listeners
+<a href="using-classes-as-listeners" name="using-classes-as-listeners" class="anchor"></a>
+## Использование классов в качестве слушателей
 
-In some cases, you may wish to use a class to handle an event rather than a Closure. Class event listeners will be resolved out of the [Application IoC container](application), providing you with the full power of dependency injection on your listeners.
+Вы можете использовать классы для обработки событий.
 
-<a name="event-class-method"></a>
-### Subscribe to individual methods
+<a href="event-class-method" name="event-class-method" class="anchor"></a>
+### Определение метода-подписчика
 
-The event class can be registered with the `Event::listen` method like any other, passing the class name as a string.
+Вы можете определить класс для обработки событий, передав его название в качестве второго аргумента.
 
     Event::listen('auth.login', 'LoginHandler');
 
-By default, the `handle` method on the `LoginHandler` class will be called:
+По умолчанию буде вызываться метод `handle` класса `LoginHandler`:
 
     class LoginHandler
     {
@@ -188,14 +185,14 @@ By default, the `handle` method on the `LoginHandler` class will be called:
         }
     }
 
-If you do not wish to use the default `handle` method, you may specify the method name that should be subscribed.
+Вы можете заменить этот метода на любой другой:
 
     Event::listen('auth.login', 'LoginHandler@onLogin');
 
-<a name="event-class-subscribe"></a>
-### Subscribe to entire class
+<a href="event-class-subscribe" name="event-class-subscribe" class="anchor"></a>
+### Определение класса-подписчика
 
-Event subscribers are classes that may subscribe to multiple events from within the class itself. Subscribers should define a `subscribe` method, which will be passed an event dispatcher instance.
+Подписчики на события (Event Class Subscribers) - классы, которые могут быть подписаны на несколько событий и содержать сразу несколько обработчиков событий. Такой класс должен иметь метод `subscribe`, который принимает в аргументах инстанс диспетчера событий:
 
     class UserEventHandler
     {
@@ -229,34 +226,34 @@ Event subscribers are classes that may subscribe to multiple events from within 
         }
     }
 
-Once the subscriber has been defined, it may be registered with the `Event::subscribe` method.
+После того как класс определён, его можно зарегистрировать следующим образом:
 
     Event::subscribe(new UserEventHandler);
 
-You may also use the [Application IoC container](application) to resolve your subscriber. To do so, simply pass the name of your subscriber to the `subscribe` method.
+Вы также можете использовать [сервис-контейнер](./application) для того, чтобы получить объект своего подписчика на события:
 
     Event::subscribe('UserEventHandler');
 
-<a name="event-emitter-trait"></a>
-## Event emitter trait
+<a href="event-emitter-trait" name="event-emitter-trait" class="anchor"></a>
+## Трейт
 
-Sometimes you want to bind events to a single instance of an object. You may use an alternative event system by implementing the `October\Rain\Support\Traits\Emitter` trait inside your class.
+Вы можете использовать трейт `October\Rain\Support\Traits\Emitter`, чтобы связать события с экземпляром объекта внутри вашего класса.
 
     class UserManager
     {
         use \October\Rain\Support\Traits\Emitter;
     }
 
-This trait provides a method to listen for events with `bindEvent`.
+Этот трейт позволяет "слушать" события при помощи метода `bindEvent`.
 
     $manager = new UserManager;
     $manager->bindEvent('user.beforeRegister', function($user) {
         // Check if the $user is a spammer
     });
 
-The `fireEvent` method is used to fire events.
+Метод `fireEvent` используется для «выстреливания» события.
 
     $manager = new UserManager;
     $manager->fireEvent('user.beforeRegister', [$user]);
 
-These events will only occur on the local object as opposed to globally.
+Эти события будут происходить только для локального объекта.
