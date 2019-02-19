@@ -74,3 +74,5 @@ Data-* атрибуты позволяют Вам использовать AJAX 
         <input type="file" name="photo" accept="image/*" />
         <button type="submit">Submit</button>
     </form>
+
+15.02.2019
